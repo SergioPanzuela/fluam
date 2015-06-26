@@ -17,7 +17,33 @@
 // You should have received a copy of the GNU General Public License
 // along with Fluam. If not, see <http://www.gnu.org/licenses/>.
 
+/*Change  f = tex1D(texforceNonBonded1,r2*invcutoff2GPU);
+ * for  type_j = pt->types[nboundaryGPU+j];f =LJ(r2, pt->Aij_param, pt->Bij_param, type_i+ntypesGPU*type_j);
+ */
 
+/*!
+ * @brief Lennard Jonnes force function
+ *
+ *Using the eq. A/r12 -B/r6. And given a certain r2, A and B. This 
+ *function returns the LJ force between two particles.
+ *
+ * @param r2 Square distance
+ * @param *Aij  direction of A parameters matrix array 
+ * @param  *Bij "" 
+ * @param typeindex particle type index: type_i + ntypes*type_j
+ * @return Force/r
+ */
+__device__ double LJ(double r2, double *Aij, double *Bij, int typeindex){
+  if(r2>(1.0/invcutoff2GPU)) return 0.0;
+  else if(r2==0) return 0.0;
+  
+  double r6 = r2*r2*r2; r6 = 1.0/r6;
+  
+  double A = Aij[typeindex];
+  double B = Bij[typeindex];
+  
+  return (A*r6*r6 - B*r6)/r2;
+}
 
 
 __global__ void findNeighborParticlesStokesLimit_1(particlesincell* pc, 
@@ -26,6 +52,7 @@ __global__ void findNeighborParticlesStokesLimit_1(particlesincell* pc,
   int i = blockDim.x * blockIdx.x + threadIdx.x;
   if(i>=(npGPU)) return;   
 
+  
   double rx = fetch_double(texrxboundaryGPU,nboundaryGPU+i);
   double ry = fetch_double(texryboundaryGPU,nboundaryGPU+i);
   double rz = fetch_double(texrzboundaryGPU,nboundaryGPU+i);
@@ -64,20 +91,6 @@ __global__ void findNeighborParticlesStokesLimit_1(particlesincell* pc,
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 //Fill "countparticlesincellX" lists
 //and spread particle force F 
 __global__ void kernelSpreadParticlesForceStokesLimit(const double* rxcellGPU, 
@@ -91,10 +104,16 @@ __global__ void kernelSpreadParticlesForceStokesLimit(const double* rxcellGPU,
 						      double* vzboundaryGPU,
 						      particlesincell* pc,
 						      int* errorKernel,
-						      const bondedForcesVariables* bFV){
+						      const bondedForcesVariables* bFV,
+						      const particle_type *pt
+						     ){
   
   int i = blockDim.x * blockIdx.x + threadIdx.x;
   if(i>=(npGPU)) return;   
+  
+  int type_i = pt->types[nboundaryGPU+i];
+  int type_j;
+
   
   double fx = 0.;//pressurea0GPU;// * 0.267261241912424385 ;//0;
   double fy = 0.;//pressurea0GPU * 0.534522483824848769 ;
@@ -200,8 +219,7 @@ __global__ void kernelSpreadParticlesForceStokesLimit(const double* rxcellGPU,
       rzij =  (rz - fetch_double(texrzboundaryGPU,particle));
       rzij =  (rzij - int(rzij*invlzGPU + 0.5*((rzij>0)-(rzij<0)))*lzGPU);
       r2 = rxij*rxij + ryij*ryij + rzij*rzij;
-      f = tex1D(texforceNonBonded1,r2*invcutoff2GPU);
-      fx += f * rxij;
+      type_j = pt->types[nboundaryGPU+j];f =LJ(r2, pt->Aij_param, pt->Bij_param, type_i+ntypesGPU*type_j);      fx += f * rxij;
       fy += f * ryij;
       fz += f * rzij;
     }  
@@ -218,7 +236,7 @@ __global__ void kernelSpreadParticlesForceStokesLimit(const double* rxcellGPU,
       rzij =  (rz - fetch_double(texrzboundaryGPU,particle));
       rzij =  (rzij - int(rzij*invlzGPU + 0.5*((rzij>0)-(rzij<0)))*lzGPU);
       r2 = rxij*rxij + ryij*ryij + rzij*rzij;
-      f = tex1D(texforceNonBonded1,r2*invcutoff2GPU);
+      type_j = pt->types[nboundaryGPU+j];f =LJ(r2, pt->Aij_param, pt->Bij_param, type_i+ntypesGPU*type_j);  
       fx += f * rxij;
       fy += f * ryij;
       fz += f * rzij;
@@ -235,8 +253,7 @@ __global__ void kernelSpreadParticlesForceStokesLimit(const double* rxcellGPU,
       rzij =  (rz - fetch_double(texrzboundaryGPU,particle));
       rzij =  (rzij - int(rzij*invlzGPU + 0.5*((rzij>0)-(rzij<0)))*lzGPU);
       r2 = rxij*rxij + ryij*ryij + rzij*rzij;
-      f = tex1D(texforceNonBonded1,r2*invcutoff2GPU);
-      fx += f * rxij;
+      type_j = pt->types[nboundaryGPU+j];f =LJ(r2, pt->Aij_param, pt->Bij_param, type_i+ntypesGPU*type_j);      fx += f * rxij;
       fy += f * ryij;
       fz += f * rzij;
     }
@@ -252,8 +269,7 @@ __global__ void kernelSpreadParticlesForceStokesLimit(const double* rxcellGPU,
       rzij =  (rz - fetch_double(texrzboundaryGPU,particle));
       rzij =  (rzij - int(rzij*invlzGPU + 0.5*((rzij>0)-(rzij<0)))*lzGPU);
       r2 = rxij*rxij + ryij*ryij + rzij*rzij;
-      f = tex1D(texforceNonBonded1,r2*invcutoff2GPU);
-      fx += f * rxij;
+      type_j = pt->types[nboundaryGPU+j];f =LJ(r2, pt->Aij_param, pt->Bij_param, type_i+ntypesGPU*type_j);      fx += f * rxij;
       fy += f * ryij;
       fz += f * rzij;
     }
@@ -269,8 +285,7 @@ __global__ void kernelSpreadParticlesForceStokesLimit(const double* rxcellGPU,
       rzij =  (rz - fetch_double(texrzboundaryGPU,particle));
       rzij =  (rzij - int(rzij*invlzGPU + 0.5*((rzij>0)-(rzij<0)))*lzGPU);
       r2 = rxij*rxij + ryij*ryij + rzij*rzij;
-      f = tex1D(texforceNonBonded1,r2*invcutoff2GPU);
-      fx += f * rxij;
+      type_j = pt->types[nboundaryGPU+j];f =LJ(r2, pt->Aij_param, pt->Bij_param, type_i+ntypesGPU*type_j);      fx += f * rxij;
       fy += f * ryij;
       fz += f * rzij;
     }
@@ -287,8 +302,7 @@ __global__ void kernelSpreadParticlesForceStokesLimit(const double* rxcellGPU,
       rzij =  (rz - fetch_double(texrzboundaryGPU,particle));
       rzij =  (rzij - int(rzij*invlzGPU + 0.5*((rzij>0)-(rzij<0)))*lzGPU);
       r2 = rxij*rxij + ryij*ryij + rzij*rzij;
-      f = tex1D(texforceNonBonded1,r2*invcutoff2GPU);
-      fx += f * rxij;
+      type_j = pt->types[nboundaryGPU+j];f =LJ(r2, pt->Aij_param, pt->Bij_param, type_i+ntypesGPU*type_j);      fx += f * rxij;
       fy += f * ryij;
       fz += f * rzij;
     }
@@ -304,8 +318,7 @@ __global__ void kernelSpreadParticlesForceStokesLimit(const double* rxcellGPU,
       rzij =  (rz - fetch_double(texrzboundaryGPU,particle));
       rzij =  (rzij - int(rzij*invlzGPU + 0.5*((rzij>0)-(rzij<0)))*lzGPU);
       r2 = rxij*rxij + ryij*ryij + rzij*rzij;
-      f = tex1D(texforceNonBonded1,r2*invcutoff2GPU);
-      fx += f * rxij;
+      type_j = pt->types[nboundaryGPU+j];f =LJ(r2, pt->Aij_param, pt->Bij_param, type_i+ntypesGPU*type_j);      fx += f * rxij;
       fy += f * ryij;
       fz += f * rzij;
     }
@@ -321,8 +334,7 @@ __global__ void kernelSpreadParticlesForceStokesLimit(const double* rxcellGPU,
       rzij =  (rz - fetch_double(texrzboundaryGPU,particle));
       rzij =  (rzij - int(rzij*invlzGPU + 0.5*((rzij>0)-(rzij<0)))*lzGPU);
       r2 = rxij*rxij + ryij*ryij + rzij*rzij;
-      f = tex1D(texforceNonBonded1,r2*invcutoff2GPU);
-      fx += f * rxij;
+      type_j = pt->types[nboundaryGPU+j];f =LJ(r2, pt->Aij_param, pt->Bij_param, type_i+ntypesGPU*type_j);      fx += f * rxij;
       fy += f * ryij;
       fz += f * rzij;
     }
@@ -338,8 +350,7 @@ __global__ void kernelSpreadParticlesForceStokesLimit(const double* rxcellGPU,
       rzij =  (rz - fetch_double(texrzboundaryGPU,particle));
       rzij =  (rzij - int(rzij*invlzGPU + 0.5*((rzij>0)-(rzij<0)))*lzGPU);
       r2 = rxij*rxij + ryij*ryij + rzij*rzij;
-      f = tex1D(texforceNonBonded1,r2*invcutoff2GPU);
-      fx += f * rxij;
+      type_j = pt->types[nboundaryGPU+j];f =LJ(r2, pt->Aij_param, pt->Bij_param, type_i+ntypesGPU*type_j);      fx += f * rxij;
       fy += f * ryij;
       fz += f * rzij;
     }
@@ -355,8 +366,7 @@ __global__ void kernelSpreadParticlesForceStokesLimit(const double* rxcellGPU,
       rzij =  (rz - fetch_double(texrzboundaryGPU,particle));
       rzij =  (rzij - int(rzij*invlzGPU + 0.5*((rzij>0)-(rzij<0)))*lzGPU);
       r2 = rxij*rxij + ryij*ryij + rzij*rzij;
-      f = tex1D(texforceNonBonded1,r2*invcutoff2GPU);
-      fx += f * rxij;
+      type_j = pt->types[nboundaryGPU+j];f =LJ(r2, pt->Aij_param, pt->Bij_param, type_i+ntypesGPU*type_j);      fx += f * rxij;
       fy += f * ryij;
       fz += f * rzij;
     }
@@ -372,8 +382,7 @@ __global__ void kernelSpreadParticlesForceStokesLimit(const double* rxcellGPU,
       rzij =  (rz - fetch_double(texrzboundaryGPU,particle));
       rzij =  (rzij - int(rzij*invlzGPU + 0.5*((rzij>0)-(rzij<0)))*lzGPU);
       r2 = rxij*rxij + ryij*ryij + rzij*rzij;
-      f = tex1D(texforceNonBonded1,r2*invcutoff2GPU);
-      fx += f * rxij;
+      type_j = pt->types[nboundaryGPU+j];f =LJ(r2, pt->Aij_param, pt->Bij_param, type_i+ntypesGPU*type_j);      fx += f * rxij;
       fy += f * ryij;
       fz += f * rzij;
     }
@@ -389,8 +398,7 @@ __global__ void kernelSpreadParticlesForceStokesLimit(const double* rxcellGPU,
       rzij =  (rz - fetch_double(texrzboundaryGPU,particle));
       rzij =  (rzij - int(rzij*invlzGPU + 0.5*((rzij>0)-(rzij<0)))*lzGPU);
       r2 = rxij*rxij + ryij*ryij + rzij*rzij;
-      f = tex1D(texforceNonBonded1,r2*invcutoff2GPU);
-      fx += f * rxij;
+      type_j = pt->types[nboundaryGPU+j];f =LJ(r2, pt->Aij_param, pt->Bij_param, type_i+ntypesGPU*type_j);      fx += f * rxij;
       fy += f * ryij;
       fz += f * rzij; 
     }
@@ -406,8 +414,7 @@ __global__ void kernelSpreadParticlesForceStokesLimit(const double* rxcellGPU,
       rzij =  (rz - fetch_double(texrzboundaryGPU,particle));
       rzij =  (rzij - int(rzij*invlzGPU + 0.5*((rzij>0)-(rzij<0)))*lzGPU);
       r2 = rxij*rxij + ryij*ryij + rzij*rzij;
-      f = tex1D(texforceNonBonded1,r2*invcutoff2GPU);
-      fx += f * rxij;
+      type_j = pt->types[nboundaryGPU+j];f =LJ(r2, pt->Aij_param, pt->Bij_param, type_i+ntypesGPU*type_j);      fx += f * rxij;
       fy += f * ryij;
       fz += f * rzij;
     }
@@ -423,8 +430,7 @@ __global__ void kernelSpreadParticlesForceStokesLimit(const double* rxcellGPU,
       rzij =  (rz - fetch_double(texrzboundaryGPU,particle));
       rzij =  (rzij - int(rzij*invlzGPU + 0.5*((rzij>0)-(rzij<0)))*lzGPU);
       r2 = rxij*rxij + ryij*ryij + rzij*rzij;
-      f = tex1D(texforceNonBonded1,r2*invcutoff2GPU);
-      fx += f * rxij;
+      type_j = pt->types[nboundaryGPU+j];f =LJ(r2, pt->Aij_param, pt->Bij_param, type_i+ntypesGPU*type_j);      fx += f * rxij;
       fy += f * ryij;
       fz += f * rzij;
     }
@@ -440,8 +446,7 @@ __global__ void kernelSpreadParticlesForceStokesLimit(const double* rxcellGPU,
       rzij =  (rz - fetch_double(texrzboundaryGPU,particle));
       rzij =  (rzij - int(rzij*invlzGPU + 0.5*((rzij>0)-(rzij<0)))*lzGPU);
       r2 = rxij*rxij + ryij*ryij + rzij*rzij;
-      f = tex1D(texforceNonBonded1,r2*invcutoff2GPU);
-      fx += f * rxij;
+      type_j = pt->types[nboundaryGPU+j];f =LJ(r2, pt->Aij_param, pt->Bij_param, type_i+ntypesGPU*type_j);      fx += f * rxij;
       fy += f * ryij;
       fz += f * rzij;
     }
@@ -457,8 +462,7 @@ __global__ void kernelSpreadParticlesForceStokesLimit(const double* rxcellGPU,
       rzij =  (rz - fetch_double(texrzboundaryGPU,particle));
       rzij =  (rzij - int(rzij*invlzGPU + 0.5*((rzij>0)-(rzij<0)))*lzGPU);
       r2 = rxij*rxij + ryij*ryij + rzij*rzij;
-      f = tex1D(texforceNonBonded1,r2*invcutoff2GPU);
-      fx += f * rxij;
+      type_j = pt->types[nboundaryGPU+j];f =LJ(r2, pt->Aij_param, pt->Bij_param, type_i+ntypesGPU*type_j);      fx += f * rxij;
       fy += f * ryij;
       fz += f * rzij;
     }
@@ -474,8 +478,7 @@ __global__ void kernelSpreadParticlesForceStokesLimit(const double* rxcellGPU,
       rzij =  (rz - fetch_double(texrzboundaryGPU,particle));
       rzij =  (rzij - int(rzij*invlzGPU + 0.5*((rzij>0)-(rzij<0)))*lzGPU);
       r2 = rxij*rxij + ryij*ryij + rzij*rzij;
-      f = tex1D(texforceNonBonded1,r2*invcutoff2GPU);
-      fx += f * rxij;
+      type_j = pt->types[nboundaryGPU+j];f =LJ(r2, pt->Aij_param, pt->Bij_param, type_i+ntypesGPU*type_j);      fx += f * rxij;
       fy += f * ryij;
       fz += f * rzij;
     }
@@ -491,8 +494,7 @@ __global__ void kernelSpreadParticlesForceStokesLimit(const double* rxcellGPU,
       rzij =  (rz - fetch_double(texrzboundaryGPU,particle));
       rzij =  (rzij - int(rzij*invlzGPU + 0.5*((rzij>0)-(rzij<0)))*lzGPU);
       r2 = rxij*rxij + ryij*ryij + rzij*rzij;
-      f = tex1D(texforceNonBonded1,r2*invcutoff2GPU);
-      fx += f * rxij;
+      type_j = pt->types[nboundaryGPU+j];f =LJ(r2, pt->Aij_param, pt->Bij_param, type_i+ntypesGPU*type_j);      fx += f * rxij;
       fy += f * ryij;
       fz += f * rzij;
     }
@@ -508,8 +510,7 @@ __global__ void kernelSpreadParticlesForceStokesLimit(const double* rxcellGPU,
       rzij =  (rz - fetch_double(texrzboundaryGPU,particle));
       rzij =  (rzij - int(rzij*invlzGPU + 0.5*((rzij>0)-(rzij<0)))*lzGPU);
       r2 = rxij*rxij + ryij*ryij + rzij*rzij;
-      f = tex1D(texforceNonBonded1,r2*invcutoff2GPU);
-      fx += f * rxij;
+      type_j = pt->types[nboundaryGPU+j];f =LJ(r2, pt->Aij_param, pt->Bij_param, type_i+ntypesGPU*type_j);      fx += f * rxij;
       fy += f * ryij;
       fz += f * rzij;
     }
@@ -525,8 +526,7 @@ __global__ void kernelSpreadParticlesForceStokesLimit(const double* rxcellGPU,
       rzij =  (rz - fetch_double(texrzboundaryGPU,particle));
       rzij =  (rzij - int(rzij*invlzGPU + 0.5*((rzij>0)-(rzij<0)))*lzGPU);
       r2 = rxij*rxij + ryij*ryij + rzij*rzij;
-      f = tex1D(texforceNonBonded1,r2*invcutoff2GPU);
-      fx += f * rxij;
+      type_j = pt->types[nboundaryGPU+j];f =LJ(r2, pt->Aij_param, pt->Bij_param, type_i+ntypesGPU*type_j);      fx += f * rxij;
       fy += f * ryij;
       fz += f * rzij;
     }
@@ -542,8 +542,7 @@ __global__ void kernelSpreadParticlesForceStokesLimit(const double* rxcellGPU,
       rzij =  (rz - fetch_double(texrzboundaryGPU,particle));
       rzij =  (rzij - int(rzij*invlzGPU + 0.5*((rzij>0)-(rzij<0)))*lzGPU);
       r2 = rxij*rxij + ryij*ryij + rzij*rzij;
-      f = tex1D(texforceNonBonded1,r2*invcutoff2GPU);
-      fx += f * rxij;
+      type_j = pt->types[nboundaryGPU+j];f =LJ(r2, pt->Aij_param, pt->Bij_param, type_i+ntypesGPU*type_j);      fx += f * rxij;
       fy += f * ryij;
       fz += f * rzij;
     }
@@ -559,8 +558,7 @@ __global__ void kernelSpreadParticlesForceStokesLimit(const double* rxcellGPU,
       rzij =  (rz - fetch_double(texrzboundaryGPU,particle));
       rzij =  (rzij - int(rzij*invlzGPU + 0.5*((rzij>0)-(rzij<0)))*lzGPU);
       r2 = rxij*rxij + ryij*ryij + rzij*rzij;
-      f = tex1D(texforceNonBonded1,r2*invcutoff2GPU);
-      fx += f * rxij;
+      type_j = pt->types[nboundaryGPU+j];f =LJ(r2, pt->Aij_param, pt->Bij_param, type_i+ntypesGPU*type_j);      fx += f * rxij;
       fy += f * ryij;
       fz += f * rzij;
     }
@@ -576,8 +574,7 @@ __global__ void kernelSpreadParticlesForceStokesLimit(const double* rxcellGPU,
       rzij =  (rz - fetch_double(texrzboundaryGPU,particle));
       rzij =  (rzij - int(rzij*invlzGPU + 0.5*((rzij>0)-(rzij<0)))*lzGPU);
       r2 = rxij*rxij + ryij*ryij + rzij*rzij;
-      f = tex1D(texforceNonBonded1,r2*invcutoff2GPU);
-      fx += f * rxij;
+      type_j = pt->types[nboundaryGPU+j];f =LJ(r2, pt->Aij_param, pt->Bij_param, type_i+ntypesGPU*type_j);      fx += f * rxij;
       fy += f * ryij;
       fz += f * rzij;
     }
@@ -593,8 +590,7 @@ __global__ void kernelSpreadParticlesForceStokesLimit(const double* rxcellGPU,
       rzij =  (rz - fetch_double(texrzboundaryGPU,particle));
       rzij =  (rzij - int(rzij*invlzGPU + 0.5*((rzij>0)-(rzij<0)))*lzGPU);
       r2 = rxij*rxij + ryij*ryij + rzij*rzij;
-      f = tex1D(texforceNonBonded1,r2*invcutoff2GPU);
-      fx += f * rxij;
+      type_j = pt->types[nboundaryGPU+j];f =LJ(r2, pt->Aij_param, pt->Bij_param, type_i+ntypesGPU*type_j);      fx += f * rxij;
       fy += f * ryij;
       fz += f * rzij;
     }
@@ -610,8 +606,7 @@ __global__ void kernelSpreadParticlesForceStokesLimit(const double* rxcellGPU,
       rzij =  (rz - fetch_double(texrzboundaryGPU,particle));
       rzij =  (rzij - int(rzij*invlzGPU + 0.5*((rzij>0)-(rzij<0)))*lzGPU);
       r2 = rxij*rxij + ryij*ryij + rzij*rzij;
-      f = tex1D(texforceNonBonded1,r2*invcutoff2GPU);
-      fx += f * rxij;
+      type_j = pt->types[nboundaryGPU+j];f =LJ(r2, pt->Aij_param, pt->Bij_param, type_i+ntypesGPU*type_j);      fx += f * rxij;
       fy += f * ryij;
       fz += f * rzij;
     }
@@ -627,8 +622,7 @@ __global__ void kernelSpreadParticlesForceStokesLimit(const double* rxcellGPU,
       rzij =  (rz - fetch_double(texrzboundaryGPU,particle));
       rzij =  (rzij - int(rzij*invlzGPU + 0.5*((rzij>0)-(rzij<0)))*lzGPU);
       r2 = rxij*rxij + ryij*ryij + rzij*rzij;
-      f = tex1D(texforceNonBonded1,r2*invcutoff2GPU);
-      fx += f * rxij;
+      type_j = pt->types[nboundaryGPU+j];f =LJ(r2, pt->Aij_param, pt->Bij_param, type_i+ntypesGPU*type_j);      fx += f * rxij;
       fy += f * ryij;
       fz += f * rzij;
     }
@@ -644,8 +638,7 @@ __global__ void kernelSpreadParticlesForceStokesLimit(const double* rxcellGPU,
       rzij =  (rz - fetch_double(texrzboundaryGPU,particle));
       rzij =  (rzij - int(rzij*invlzGPU + 0.5*((rzij>0)-(rzij<0)))*lzGPU);
       r2 = rxij*rxij + ryij*ryij + rzij*rzij;
-      f = tex1D(texforceNonBonded1,r2*invcutoff2GPU);
-      fx += f * rxij;
+      type_j = pt->types[nboundaryGPU+j];f =LJ(r2, pt->Aij_param, pt->Bij_param, type_i+ntypesGPU*type_j);      fx += f * rxij;
       fy += f * ryij;
       fz += f * rzij;
     }
@@ -1170,31 +1163,6 @@ __global__ void kernelSpreadParticlesForceStokesLimit(const double* rxcellGPU,
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 __global__ void addSpreadedForcesStokesLimit(double* vxGPU, //fx=S*Fx
 					     double* vyGPU, 
 					     double* vzGPU,
@@ -1688,20 +1656,6 @@ __global__ void addSpreadedForcesStokesLimit(double* vxGPU, //fx=S*Fx
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 __global__ void kernelSpreadParticlesDrift(const double* rxcellGPU, 
 					   const double* rycellGPU, 
 					   const double* rzcellGPU,
@@ -1710,7 +1664,6 @@ __global__ void kernelSpreadParticlesDrift(const double* rxcellGPU,
 					   double* fzboundaryGPU,
 					   const double* d_rand,
 					   particlesincell* pc,
-					   int* errorKernel,
 					   int sign){
   
   int i = blockDim.x * blockIdx.x + threadIdx.x;
@@ -2263,21 +2216,6 @@ __global__ void kernelSpreadParticlesDrift(const double* rxcellGPU,
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 __global__ void kernelConstructWstokesLimit(const double *vxGPU, //Stored fx=S*Fx+S*drift_p-S*drift_m
 					    const double *vyGPU, 
 					    const double *vzGPU, 
@@ -2380,22 +2318,6 @@ __global__ void kernelConstructWstokesLimit(const double *vxGPU, //Stored fx=S*F
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 __global__ void kernelUpdateVstokesLimit(cufftDoubleComplex *vxZ, 
 					 cufftDoubleComplex *vyZ,
 					 cufftDoubleComplex *vzZ, 
@@ -2449,26 +2371,6 @@ __global__ void kernelUpdateVstokesLimit(cufftDoubleComplex *vxZ,
   }
   
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 
@@ -2898,30 +2800,20 @@ __global__ void updateParticlesStokesLimit_1(particlesincell* pc,
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 __global__ void particlesForceStokesLimit(double* vxboundaryGPU,//Fx, this is the force on the particle.
 					  double* vyboundaryGPU,
 					  double* vzboundaryGPU,
 					  particlesincell* pc,
 					  int* errorKernel,
-					  const bondedForcesVariables* bFV){
+					  const bondedForcesVariables* bFV,
+					  particle_type *pt
+ 					){
   
   int i = blockDim.x * blockIdx.x + threadIdx.x;
   if(i>=(npGPU)) return;   
+  
+  int type_i = pt->types[nboundaryGPU+i];
+  int type_j;
   
   double fx = 0.;//pressurea0GPU;// * 0.267261241912424385 ;//0;
   double fy = 0.;//pressurea0GPU * 0.534522483824848769 ;
@@ -3027,8 +2919,7 @@ __global__ void particlesForceStokesLimit(double* vxboundaryGPU,//Fx, this is th
       rzij =  (rz - fetch_double(texrzboundaryGPU,particle));
       rzij =  (rzij - int(rzij*invlzGPU + 0.5*((rzij>0)-(rzij<0)))*lzGPU);
       r2 = rxij*rxij + ryij*ryij + rzij*rzij;
-      f = tex1D(texforceNonBonded1,r2*invcutoff2GPU);
-      fx += f * rxij;
+      type_j = pt->types[nboundaryGPU+j];f =LJ(r2, pt->Aij_param, pt->Bij_param, type_i+ntypesGPU*type_j);      fx += f * rxij;
       fy += f * ryij;
       fz += f * rzij;
     }  
@@ -3045,8 +2936,7 @@ __global__ void particlesForceStokesLimit(double* vxboundaryGPU,//Fx, this is th
       rzij =  (rz - fetch_double(texrzboundaryGPU,particle));
       rzij =  (rzij - int(rzij*invlzGPU + 0.5*((rzij>0)-(rzij<0)))*lzGPU);
       r2 = rxij*rxij + ryij*ryij + rzij*rzij;
-      f = tex1D(texforceNonBonded1,r2*invcutoff2GPU);
-      fx += f * rxij;
+      type_j = pt->types[nboundaryGPU+j];f =LJ(r2, pt->Aij_param, pt->Bij_param, type_i+ntypesGPU*type_j);      fx += f * rxij;
       fy += f * ryij;
       fz += f * rzij;
     }
@@ -3062,8 +2952,7 @@ __global__ void particlesForceStokesLimit(double* vxboundaryGPU,//Fx, this is th
       rzij =  (rz - fetch_double(texrzboundaryGPU,particle));
       rzij =  (rzij - int(rzij*invlzGPU + 0.5*((rzij>0)-(rzij<0)))*lzGPU);
       r2 = rxij*rxij + ryij*ryij + rzij*rzij;
-      f = tex1D(texforceNonBonded1,r2*invcutoff2GPU);
-      fx += f * rxij;
+      type_j = pt->types[nboundaryGPU+j];f =LJ(r2, pt->Aij_param, pt->Bij_param, type_i+ntypesGPU*type_j);      fx += f * rxij;
       fy += f * ryij;
       fz += f * rzij;
     }
@@ -3079,8 +2968,7 @@ __global__ void particlesForceStokesLimit(double* vxboundaryGPU,//Fx, this is th
       rzij =  (rz - fetch_double(texrzboundaryGPU,particle));
       rzij =  (rzij - int(rzij*invlzGPU + 0.5*((rzij>0)-(rzij<0)))*lzGPU);
       r2 = rxij*rxij + ryij*ryij + rzij*rzij;
-      f = tex1D(texforceNonBonded1,r2*invcutoff2GPU);
-      fx += f * rxij;
+      type_j = pt->types[nboundaryGPU+j];f =LJ(r2, pt->Aij_param, pt->Bij_param, type_i+ntypesGPU*type_j);      fx += f * rxij;
       fy += f * ryij;
       fz += f * rzij;
     }
@@ -3096,8 +2984,7 @@ __global__ void particlesForceStokesLimit(double* vxboundaryGPU,//Fx, this is th
       rzij =  (rz - fetch_double(texrzboundaryGPU,particle));
       rzij =  (rzij - int(rzij*invlzGPU + 0.5*((rzij>0)-(rzij<0)))*lzGPU);
       r2 = rxij*rxij + ryij*ryij + rzij*rzij;
-      f = tex1D(texforceNonBonded1,r2*invcutoff2GPU);
-      fx += f * rxij;
+      type_j = pt->types[nboundaryGPU+j];f =LJ(r2, pt->Aij_param, pt->Bij_param, type_i+ntypesGPU*type_j);      fx += f * rxij;
       fy += f * ryij;
       fz += f * rzij;
     }
@@ -3114,8 +3001,7 @@ __global__ void particlesForceStokesLimit(double* vxboundaryGPU,//Fx, this is th
       rzij =  (rz - fetch_double(texrzboundaryGPU,particle));
       rzij =  (rzij - int(rzij*invlzGPU + 0.5*((rzij>0)-(rzij<0)))*lzGPU);
       r2 = rxij*rxij + ryij*ryij + rzij*rzij;
-      f = tex1D(texforceNonBonded1,r2*invcutoff2GPU);
-      fx += f * rxij;
+      type_j = pt->types[nboundaryGPU+j];f =LJ(r2, pt->Aij_param, pt->Bij_param, type_i+ntypesGPU*type_j);      fx += f * rxij;
       fy += f * ryij;
       fz += f * rzij;
     }
@@ -3131,8 +3017,7 @@ __global__ void particlesForceStokesLimit(double* vxboundaryGPU,//Fx, this is th
       rzij =  (rz - fetch_double(texrzboundaryGPU,particle));
       rzij =  (rzij - int(rzij*invlzGPU + 0.5*((rzij>0)-(rzij<0)))*lzGPU);
       r2 = rxij*rxij + ryij*ryij + rzij*rzij;
-      f = tex1D(texforceNonBonded1,r2*invcutoff2GPU);
-      fx += f * rxij;
+      type_j = pt->types[nboundaryGPU+j];f =LJ(r2, pt->Aij_param, pt->Bij_param, type_i+ntypesGPU*type_j);      fx += f * rxij;
       fy += f * ryij;
       fz += f * rzij;
     }
@@ -3148,8 +3033,7 @@ __global__ void particlesForceStokesLimit(double* vxboundaryGPU,//Fx, this is th
       rzij =  (rz - fetch_double(texrzboundaryGPU,particle));
       rzij =  (rzij - int(rzij*invlzGPU + 0.5*((rzij>0)-(rzij<0)))*lzGPU);
       r2 = rxij*rxij + ryij*ryij + rzij*rzij;
-      f = tex1D(texforceNonBonded1,r2*invcutoff2GPU);
-      fx += f * rxij;
+      type_j = pt->types[nboundaryGPU+j];f =LJ(r2, pt->Aij_param, pt->Bij_param, type_i+ntypesGPU*type_j);      fx += f * rxij;
       fy += f * ryij;
       fz += f * rzij;
     }
@@ -3165,8 +3049,7 @@ __global__ void particlesForceStokesLimit(double* vxboundaryGPU,//Fx, this is th
       rzij =  (rz - fetch_double(texrzboundaryGPU,particle));
       rzij =  (rzij - int(rzij*invlzGPU + 0.5*((rzij>0)-(rzij<0)))*lzGPU);
       r2 = rxij*rxij + ryij*ryij + rzij*rzij;
-      f = tex1D(texforceNonBonded1,r2*invcutoff2GPU);
-      fx += f * rxij;
+      type_j = pt->types[nboundaryGPU+j];f =LJ(r2, pt->Aij_param, pt->Bij_param, type_i+ntypesGPU*type_j);      fx += f * rxij;
       fy += f * ryij;
       fz += f * rzij;
     }
@@ -3182,8 +3065,7 @@ __global__ void particlesForceStokesLimit(double* vxboundaryGPU,//Fx, this is th
       rzij =  (rz - fetch_double(texrzboundaryGPU,particle));
       rzij =  (rzij - int(rzij*invlzGPU + 0.5*((rzij>0)-(rzij<0)))*lzGPU);
       r2 = rxij*rxij + ryij*ryij + rzij*rzij;
-      f = tex1D(texforceNonBonded1,r2*invcutoff2GPU);
-      fx += f * rxij;
+      type_j = pt->types[nboundaryGPU+j];f =LJ(r2, pt->Aij_param, pt->Bij_param, type_i+ntypesGPU*type_j);      fx += f * rxij;
       fy += f * ryij;
       fz += f * rzij;
     }
@@ -3199,8 +3081,7 @@ __global__ void particlesForceStokesLimit(double* vxboundaryGPU,//Fx, this is th
       rzij =  (rz - fetch_double(texrzboundaryGPU,particle));
       rzij =  (rzij - int(rzij*invlzGPU + 0.5*((rzij>0)-(rzij<0)))*lzGPU);
       r2 = rxij*rxij + ryij*ryij + rzij*rzij;
-      f = tex1D(texforceNonBonded1,r2*invcutoff2GPU);
-      fx += f * rxij;
+      type_j = pt->types[nboundaryGPU+j];f =LJ(r2, pt->Aij_param, pt->Bij_param, type_i+ntypesGPU*type_j);      fx += f * rxij;
       fy += f * ryij;
       fz += f * rzij;
     }
@@ -3216,8 +3097,7 @@ __global__ void particlesForceStokesLimit(double* vxboundaryGPU,//Fx, this is th
       rzij =  (rz - fetch_double(texrzboundaryGPU,particle));
       rzij =  (rzij - int(rzij*invlzGPU + 0.5*((rzij>0)-(rzij<0)))*lzGPU);
       r2 = rxij*rxij + ryij*ryij + rzij*rzij;
-      f = tex1D(texforceNonBonded1,r2*invcutoff2GPU);
-      fx += f * rxij;
+      type_j = pt->types[nboundaryGPU+j];f =LJ(r2, pt->Aij_param, pt->Bij_param, type_i+ntypesGPU*type_j);      fx += f * rxij;
       fy += f * ryij;
       fz += f * rzij; 
     }
@@ -3233,8 +3113,7 @@ __global__ void particlesForceStokesLimit(double* vxboundaryGPU,//Fx, this is th
       rzij =  (rz - fetch_double(texrzboundaryGPU,particle));
       rzij =  (rzij - int(rzij*invlzGPU + 0.5*((rzij>0)-(rzij<0)))*lzGPU);
       r2 = rxij*rxij + ryij*ryij + rzij*rzij;
-      f = tex1D(texforceNonBonded1,r2*invcutoff2GPU);
-      fx += f * rxij;
+      type_j = pt->types[nboundaryGPU+j];f =LJ(r2, pt->Aij_param, pt->Bij_param, type_i+ntypesGPU*type_j);      fx += f * rxij;
       fy += f * ryij;
       fz += f * rzij;
     }
@@ -3250,8 +3129,7 @@ __global__ void particlesForceStokesLimit(double* vxboundaryGPU,//Fx, this is th
       rzij =  (rz - fetch_double(texrzboundaryGPU,particle));
       rzij =  (rzij - int(rzij*invlzGPU + 0.5*((rzij>0)-(rzij<0)))*lzGPU);
       r2 = rxij*rxij + ryij*ryij + rzij*rzij;
-      f = tex1D(texforceNonBonded1,r2*invcutoff2GPU);
-      fx += f * rxij;
+      type_j = pt->types[nboundaryGPU+j];f =LJ(r2, pt->Aij_param, pt->Bij_param, type_i+ntypesGPU*type_j);      fx += f * rxij;
       fy += f * ryij;
       fz += f * rzij;
     }
@@ -3267,8 +3145,7 @@ __global__ void particlesForceStokesLimit(double* vxboundaryGPU,//Fx, this is th
       rzij =  (rz - fetch_double(texrzboundaryGPU,particle));
       rzij =  (rzij - int(rzij*invlzGPU + 0.5*((rzij>0)-(rzij<0)))*lzGPU);
       r2 = rxij*rxij + ryij*ryij + rzij*rzij;
-      f = tex1D(texforceNonBonded1,r2*invcutoff2GPU);
-      fx += f * rxij;
+      type_j = pt->types[nboundaryGPU+j];f =LJ(r2, pt->Aij_param, pt->Bij_param, type_i+ntypesGPU*type_j);      fx += f * rxij;
       fy += f * ryij;
       fz += f * rzij;
     }
@@ -3284,8 +3161,7 @@ __global__ void particlesForceStokesLimit(double* vxboundaryGPU,//Fx, this is th
       rzij =  (rz - fetch_double(texrzboundaryGPU,particle));
       rzij =  (rzij - int(rzij*invlzGPU + 0.5*((rzij>0)-(rzij<0)))*lzGPU);
       r2 = rxij*rxij + ryij*ryij + rzij*rzij;
-      f = tex1D(texforceNonBonded1,r2*invcutoff2GPU);
-      fx += f * rxij;
+      type_j = pt->types[nboundaryGPU+j];f =LJ(r2, pt->Aij_param, pt->Bij_param, type_i+ntypesGPU*type_j);      fx += f * rxij;
       fy += f * ryij;
       fz += f * rzij;
     }
@@ -3301,8 +3177,7 @@ __global__ void particlesForceStokesLimit(double* vxboundaryGPU,//Fx, this is th
       rzij =  (rz - fetch_double(texrzboundaryGPU,particle));
       rzij =  (rzij - int(rzij*invlzGPU + 0.5*((rzij>0)-(rzij<0)))*lzGPU);
       r2 = rxij*rxij + ryij*ryij + rzij*rzij;
-      f = tex1D(texforceNonBonded1,r2*invcutoff2GPU);
-      fx += f * rxij;
+      type_j = pt->types[nboundaryGPU+j];f =LJ(r2, pt->Aij_param, pt->Bij_param, type_i+ntypesGPU*type_j);      fx += f * rxij;
       fy += f * ryij;
       fz += f * rzij;
     }
@@ -3318,8 +3193,7 @@ __global__ void particlesForceStokesLimit(double* vxboundaryGPU,//Fx, this is th
       rzij =  (rz - fetch_double(texrzboundaryGPU,particle));
       rzij =  (rzij - int(rzij*invlzGPU + 0.5*((rzij>0)-(rzij<0)))*lzGPU);
       r2 = rxij*rxij + ryij*ryij + rzij*rzij;
-      f = tex1D(texforceNonBonded1,r2*invcutoff2GPU);
-      fx += f * rxij;
+      type_j = pt->types[nboundaryGPU+j];f =LJ(r2, pt->Aij_param, pt->Bij_param, type_i+ntypesGPU*type_j);      fx += f * rxij;
       fy += f * ryij;
       fz += f * rzij;
     }
@@ -3335,8 +3209,7 @@ __global__ void particlesForceStokesLimit(double* vxboundaryGPU,//Fx, this is th
       rzij =  (rz - fetch_double(texrzboundaryGPU,particle));
       rzij =  (rzij - int(rzij*invlzGPU + 0.5*((rzij>0)-(rzij<0)))*lzGPU);
       r2 = rxij*rxij + ryij*ryij + rzij*rzij;
-      f = tex1D(texforceNonBonded1,r2*invcutoff2GPU);
-      fx += f * rxij;
+      type_j = pt->types[nboundaryGPU+j];f =LJ(r2, pt->Aij_param, pt->Bij_param, type_i+ntypesGPU*type_j);      fx += f * rxij;
       fy += f * ryij;
       fz += f * rzij;
     }
@@ -3352,8 +3225,7 @@ __global__ void particlesForceStokesLimit(double* vxboundaryGPU,//Fx, this is th
       rzij =  (rz - fetch_double(texrzboundaryGPU,particle));
       rzij =  (rzij - int(rzij*invlzGPU + 0.5*((rzij>0)-(rzij<0)))*lzGPU);
       r2 = rxij*rxij + ryij*ryij + rzij*rzij;
-      f = tex1D(texforceNonBonded1,r2*invcutoff2GPU);
-      fx += f * rxij;
+      type_j = pt->types[nboundaryGPU+j];f =LJ(r2, pt->Aij_param, pt->Bij_param, type_i+ntypesGPU*type_j);      fx += f * rxij;
       fy += f * ryij;
       fz += f * rzij;
     }
@@ -3369,8 +3241,7 @@ __global__ void particlesForceStokesLimit(double* vxboundaryGPU,//Fx, this is th
       rzij =  (rz - fetch_double(texrzboundaryGPU,particle));
       rzij =  (rzij - int(rzij*invlzGPU + 0.5*((rzij>0)-(rzij<0)))*lzGPU);
       r2 = rxij*rxij + ryij*ryij + rzij*rzij;
-      f = tex1D(texforceNonBonded1,r2*invcutoff2GPU);
-      fx += f * rxij;
+      type_j = pt->types[nboundaryGPU+j];f =LJ(r2, pt->Aij_param, pt->Bij_param, type_i+ntypesGPU*type_j);      fx += f * rxij;
       fy += f * ryij;
       fz += f * rzij;
     }
@@ -3386,8 +3257,7 @@ __global__ void particlesForceStokesLimit(double* vxboundaryGPU,//Fx, this is th
       rzij =  (rz - fetch_double(texrzboundaryGPU,particle));
       rzij =  (rzij - int(rzij*invlzGPU + 0.5*((rzij>0)-(rzij<0)))*lzGPU);
       r2 = rxij*rxij + ryij*ryij + rzij*rzij;
-      f = tex1D(texforceNonBonded1,r2*invcutoff2GPU);
-      fx += f * rxij;
+      type_j = pt->types[nboundaryGPU+j];f =LJ(r2, pt->Aij_param, pt->Bij_param, type_i+ntypesGPU*type_j);      fx += f * rxij;
       fy += f * ryij;
       fz += f * rzij;
     }
@@ -3403,8 +3273,7 @@ __global__ void particlesForceStokesLimit(double* vxboundaryGPU,//Fx, this is th
       rzij =  (rz - fetch_double(texrzboundaryGPU,particle));
       rzij =  (rzij - int(rzij*invlzGPU + 0.5*((rzij>0)-(rzij<0)))*lzGPU);
       r2 = rxij*rxij + ryij*ryij + rzij*rzij;
-      f = tex1D(texforceNonBonded1,r2*invcutoff2GPU);
-      fx += f * rxij;
+      type_j = pt->types[nboundaryGPU+j];f =LJ(r2, pt->Aij_param, pt->Bij_param, type_i+ntypesGPU*type_j);      fx += f * rxij;
       fy += f * ryij;
       fz += f * rzij;
     }
@@ -3420,8 +3289,7 @@ __global__ void particlesForceStokesLimit(double* vxboundaryGPU,//Fx, this is th
       rzij =  (rz - fetch_double(texrzboundaryGPU,particle));
       rzij =  (rzij - int(rzij*invlzGPU + 0.5*((rzij>0)-(rzij<0)))*lzGPU);
       r2 = rxij*rxij + ryij*ryij + rzij*rzij;
-      f = tex1D(texforceNonBonded1,r2*invcutoff2GPU);
-      fx += f * rxij;
+      type_j = pt->types[nboundaryGPU+j];f =LJ(r2, pt->Aij_param, pt->Bij_param, type_i+ntypesGPU*type_j);      fx += f * rxij;
       fy += f * ryij;
       fz += f * rzij;
     }
@@ -3437,8 +3305,7 @@ __global__ void particlesForceStokesLimit(double* vxboundaryGPU,//Fx, this is th
       rzij =  (rz - fetch_double(texrzboundaryGPU,particle));
       rzij =  (rzij - int(rzij*invlzGPU + 0.5*((rzij>0)-(rzij<0)))*lzGPU);
       r2 = rxij*rxij + ryij*ryij + rzij*rzij;
-      f = tex1D(texforceNonBonded1,r2*invcutoff2GPU);
-      fx += f * rxij;
+      type_j = pt->types[nboundaryGPU+j];f =LJ(r2, pt->Aij_param, pt->Bij_param, type_i+ntypesGPU*type_j);      fx += f * rxij;
       fy += f * ryij;
       fz += f * rzij;
     }
@@ -3454,8 +3321,7 @@ __global__ void particlesForceStokesLimit(double* vxboundaryGPU,//Fx, this is th
       rzij =  (rz - fetch_double(texrzboundaryGPU,particle));
       rzij =  (rzij - int(rzij*invlzGPU + 0.5*((rzij>0)-(rzij<0)))*lzGPU);
       r2 = rxij*rxij + ryij*ryij + rzij*rzij;
-      f = tex1D(texforceNonBonded1,r2*invcutoff2GPU);
-      fx += f * rxij;
+      type_j = pt->types[nboundaryGPU+j];f =LJ(r2, pt->Aij_param, pt->Bij_param, type_i+ntypesGPU*type_j);      fx += f * rxij;
       fy += f * ryij;
       fz += f * rzij;
     }
@@ -3471,8 +3337,7 @@ __global__ void particlesForceStokesLimit(double* vxboundaryGPU,//Fx, this is th
       rzij =  (rz - fetch_double(texrzboundaryGPU,particle));
       rzij =  (rzij - int(rzij*invlzGPU + 0.5*((rzij>0)-(rzij<0)))*lzGPU);
       r2 = rxij*rxij + ryij*ryij + rzij*rzij;
-      f = tex1D(texforceNonBonded1,r2*invcutoff2GPU);
-      fx += f * rxij;
+      type_j = pt->types[nboundaryGPU+j];f =LJ(r2, pt->Aij_param, pt->Bij_param, type_i+ntypesGPU*type_j);      fx += f * rxij;
       fy += f * ryij;
       fz += f * rzij;
     }
@@ -3485,23 +3350,6 @@ __global__ void particlesForceStokesLimit(double* vxboundaryGPU,//Fx, this is th
   
   
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 
@@ -3892,22 +3740,6 @@ __global__ void updateParticlesStokesLimit_2(const double* rxcellGPU,
   rzboundaryGPU[nboundaryGPU+i] = rzNew;
 
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 

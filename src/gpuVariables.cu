@@ -109,6 +109,19 @@ typedef struct{
 } prefactorsFourier;
 
 
+typedef struct{
+  int *types;
+  double *Aij_param;
+  double *Bij_param;
+}particle_type; 
+double *Aij_paramGPU, *Bij_paramGPU; 
+int *particle_typesGPU;
+__constant__ int ntypesGPU;
+
+particle_type *pt;
+
+
+
 __constant__ int mxGPU, myGPU, mzGPU;
 __constant__ int mxtGPU, mytGPU, mztGPU, mxmytGPU;
 __constant__ int ncellsGPU, ncellstGPU;

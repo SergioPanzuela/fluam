@@ -34,6 +34,50 @@ bool initForcesNonBonded(){
   texforceNonBonded1.filterMode = cudaFilterModeLinear;//cudaFilterModeLinear and cudaFilterModePoint
 
   float *h_data;
+ 
+  int ntypes = 1;
+  double *Aij_param;
+  double *Bij_param;
+  if(loadparticles==0){
+    Aij_param = new double[ntypes*ntypes];
+    Bij_param = new double[ntypes*ntypes];
+    for(int i=0; i<ntypes; i++){
+      for(int j=0; j<ntypes; j++){
+        float sigma, epsilon;
+        sigma = 2 * lx / float(mx); //READ FROM FILE
+        epsilon = temperature ;
+        Aij_param[i+ntypes*j] = 48.0f * pow(sigma,12)*epsilon;
+        Bij_param[i+ntypes*j] = 48.0f * pow(sigma,6)*0.5*epsilon;
+      }
+    }
+  }
+   else{
+     ifstream in("LJ.in");
+     in>>ntypes;
+     Aij_param = new double[ntypes*ntypes];
+     Bij_param = new double[ntypes*ntypes];
+     for(int i=0; i<ntypes; i++){
+      for(int j=0; j<ntypes; j++){
+        in>>Aij_param[i+ntypes*j];
+      }
+     }
+     for(int i=0; i<ntypes; i++){
+      for(int j=0; j<ntypes; j++){
+        in>>Bij_param[i+ntypes*j];
+      }
+     }
+
+  cudaMalloc((void **)&Aij_paramGPU, ntypes*ntypes*sizeof(double));
+  cudaMalloc((void **)&Bij_paramGPU, ntypes*ntypes*sizeof(double));
+
+  cudaMemcpy(Aij_paramGPU, Aij_param, ntypes*ntypes*sizeof(double), cudaMemcpyHostToDevice);
+  cudaMemcpy(Bij_paramGPU, Bij_param, ntypes*ntypes*sizeof(double), cudaMemcpyHostToDevice);
+  cudaMemcpyToSymbol(ntypesGPU, &ntypes, sizeof(int));
+
+
+
+
+
   int size = 4096;
   h_data = new float[size];
   float r, dr;
@@ -60,7 +104,8 @@ bool initForcesNonBonded(){
     }*/
   cout << "INIT FORCE NON-BONDED 1 COMPLETED" << endl;
   delete[] h_data;
-
+  delete[] Aij_param;
+  delete[] Bij_param;
 
   return 1;
 }
