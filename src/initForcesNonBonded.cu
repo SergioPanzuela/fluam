@@ -45,7 +45,7 @@ bool initForcesNonBonded(){
       for(int j=0; j<ntypes; j++){
         float sigma, epsilon;
         sigma = 2 * lx / float(mx); //READ FROM FILE
-        epsilon = temperature ;
+        epsilon = temperature;
         Aij_param[i+ntypes*j] = 48.0f * pow(sigma,12)*epsilon;
         Bij_param[i+ntypes*j] = 48.0f * pow(sigma,6)*0.5*epsilon;
       }
@@ -66,7 +66,7 @@ bool initForcesNonBonded(){
         in>>Bij_param[i+ntypes*j];
       }
      }
-
+}
   cudaMalloc((void **)&Aij_paramGPU, ntypes*ntypes*sizeof(double));
   cudaMalloc((void **)&Bij_paramGPU, ntypes*ntypes*sizeof(double));
 
@@ -106,6 +106,5 @@ bool initForcesNonBonded(){
   delete[] h_data;
   delete[] Aij_param;
   delete[] Bij_param;
-
-  return 1;
+return 1;
 }

@@ -1651,11 +1651,6 @@ __global__ void addSpreadedForcesStokesLimit(double* vxGPU, //fx=S*Fx
 
 
 
-
-
-
-
-
 __global__ void kernelSpreadParticlesDrift(const double* rxcellGPU, 
 					   const double* rycellGPU, 
 					   const double* rzcellGPU,
@@ -1664,6 +1659,7 @@ __global__ void kernelSpreadParticlesDrift(const double* rxcellGPU,
 					   double* fzboundaryGPU,
 					   const double* d_rand,
 					   particlesincell* pc,
+					   int* errorKernel,
 					   int sign){
   
   int i = blockDim.x * blockIdx.x + threadIdx.x;
@@ -2206,11 +2202,6 @@ __global__ void kernelSpreadParticlesDrift(const double* rxcellGPU,
 
   
 }
-
-
-
-
-
 
 
 
