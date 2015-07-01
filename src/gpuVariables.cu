@@ -345,8 +345,31 @@ typedef struct{
   double *rzFixedPointGPU;
 } bondedForcesVariables;
 
+/*!
+ * @brief Holds information of all the three-particle springs
+ * 	  involving particle i.
+ * 
+ * @var threeParticleBondsVariables::bondList
+ * 	A list of all springs involving i, including i in each one, i.e: 
+ * 	i-2,i-1,i   ,i-1,i,i+1,  i, i+1, i+2 for a linear polymer
+ * @var threeParticleBondsVariables::kSprings
+ * 	A list with all springs constants, DIM= dim(bondList)/3
+ * @var threeParticleBondsVariables::r0Springs
+ * 	Same as kSprings, but for the equilibrium distance
+ * 
+ * 
+ */
+typedef struct{
+  int *bondList;
+  double *kSprings;
+  double *r0Springs;
+  
+  
+} threeParticleBondsVariables;
+
 __constant__ bool bondedForcesGPU;
 bondedForcesVariables *bFV;
+threeParticleBondsVariables *tPBV;
 int *bondsParticleParticleGPU;
 int *bondsParticleParticleOffsetGPU;
 int *bondsIndexParticleParticleGPU;
