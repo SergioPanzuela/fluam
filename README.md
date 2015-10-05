@@ -1,4 +1,32 @@
 ####Fluam a fluctuating hydrodynamic code
+###About this branch
+The **Colors** branch allows you to stablish a different interaction for every pair based on an assigned particle type. Currently included only for the Stokes Limit scheme
+The input needs an additional column containing the particle types, starting from 0.
+
+    N
+    x1 y1 z1 type1
+    x2 y2 z2 type2
+    . 
+    .
+    .
+
+Additionally you have to specify how many different types there are and two matrices with the parameters for both short and long range interactions, this needs to be in a file called LJ.in.
+    
+    ntypes
+    A11 ... A1ntypes
+    .   .
+    .          .
+    .                 .
+    Antypes1 ... Antypes_ntypes
+    B11 ... B1ntypes
+    .   .
+    .        .
+    .	         .
+    Bntypes1 ... Bntypes_ntypes
+
+
+Both Aij and Bij matrices should be symmetric.
+
 
 ###Contents
 0. Introduction

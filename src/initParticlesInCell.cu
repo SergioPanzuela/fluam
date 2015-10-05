@@ -61,12 +61,12 @@ __global__ void initParticlesInCellOmega(int* partincell,
 
 }
 
-
+//!*R
 /*!
 *@brief Links particle_type pt GPU struct with all particle type information stored in the GPU
 *@param *pt pointer to GPU's particle_type struct
 *@param *types GPU array storing particle types (from 0 to np)
-*@param *Aij First parameters of the LJ potential, DIM ntypes*ntypes
+*@param *Aij First parameters of the force, DIM ntypes*ntypes
 . It is a matrix stored in a 1D array
 */
 __global__ void initParticleTypes(particle_type *pt, int *types, double *Aij, double *Bij){

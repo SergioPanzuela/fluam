@@ -108,7 +108,8 @@ typedef struct{
   cufftDoubleComplex* expKz;
 } prefactorsFourier;
 
-
+//!*R Particle type variables
+//!*R This struct is used to store pointers to the interaction parameters and the types of all the particles 
 typedef struct{
   int *types;
   double *Aij_param;
@@ -117,6 +118,7 @@ typedef struct{
 double *Aij_paramGPU, *Bij_paramGPU; 
 int *particle_typesGPU;
 __constant__ int ntypesGPU;
+__constant__ double cutoffnearGPU; //!*R A constant to avoid overlapping
 
 particle_type *pt;
 

@@ -49,7 +49,7 @@ bool createParticles(){
     vzParticle = new double [np];
     particle_types = new int [nboundary+np];
     for(int i=0; i<(nboundary+np); i++){
-      particle_types[i] = 0;
+      particle_types[i] =0;// (rand()/(float)RAND_MAX)>0.5?1:0;
     }
     //This is for the interpolate velocity
     vxParticleI = new double [np];
@@ -92,14 +92,18 @@ bool createParticles(){
     vxParticle = new double [np];
     vyParticle = new double [np];
     vzParticle = new double [np];
+
+    //!*R particle types CPU initialization
     particle_types = new int [nboundary+np];
     for(int i=0; i<(nboundary+np); i++){
       particle_types[i] = 0;
     }
+
     //This is for the interpolate velocity
     vxParticleI = new double [np];
     vyParticleI = new double [np];
     vzParticleI = new double [np];
+    //*!R added particle type input
     for(int i=0;i<np;i++)
       filecoor >> rxParticle[i] >> ryParticle[i] >> rzParticle[i] >> particle_types[i];
     filecoor.close();

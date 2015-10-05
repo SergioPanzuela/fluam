@@ -43,6 +43,7 @@ EXTERN_PARTICLES int* list;
 //EXTERN_PARTICLES int** neighbor1;
 //EXTERN_PARTICLES int** neighbor2;
 EXTERN_PARTICLES double *rxParticle, *ryParticle, *rzParticle;
+//!*R particle_type information for the CPU
 EXTERN_PARTICLES int *particle_types;
 EXTERN_PARTICLES double *vxParticle, *vyParticle, *vzParticle;
 EXTERN_PARTICLES double *vxParticleI, *vyParticleI, *vzParticleI;
