@@ -2,15 +2,17 @@
 This branch is capable of computing semiflexible three particle bonds.
 
 There is a new optional entry **threeBondedForces** in data.main. This allows you to provide a file with information about the bonds as follows:
-      Example:
-          O 4
-          |
-    0     |     2     3
-    O-----O-----O-----O
-         1|
-          |
-	  O 5
 
+    Example:
+      
+	          O 4
+	          |
+	    0     |     2     3
+	    O-----O-----O-----O
+	         1|
+	          |
+	      	  O 5
+	
 
 	  BondList.dat would be:
 	  3
