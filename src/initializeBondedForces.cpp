@@ -29,6 +29,12 @@
 #include "fluid.h"
 #include "parameters.h"
 #include "cells.h"
+#include<vector>
+
+
+#define fori(x,y) for(int i=x; i<y;i++)
+#define forj(x,y) for(int j=x; j<y;j++)
+
 
 const string wnothing="#";
 
@@ -237,6 +243,92 @@ bool initializeBondedForces(){
   return 1;
 }
 
+  //!*R THREE BONDED INIT STARTS
+bool initializeThreeBondedForces(){
+  ifstream file(threeBondedForcesFile.c_str());  
+  //ONLY WRITE EACH BOND ONCE!
+  /*
+          O 4
+          |
+    0     |     2     3
+    O-----O-----O-----O
+         1|
+          |
+	  O 5
+
+
+	  BondList.dat would be:
+	  3
+	  0 1 2 k r0
+	  1 2 3 k r0
+	  4 1 5 k r0
+	  
+    The order of the bonds in the file does not matter
+   */
+  
+  uint nbonds;
+  file>>nbonds;
+  NbondsThreeParticle = nbonds;
+  threebondList = new int[3*nbonds]; //Three particles per bond, just one entry per spring
+  threeNbonds = new int[np]; //Number of bonds in which each particle is involved
+  threeCumulativeIndex = new int[np]; //Sum of threeNbonds up to i-1
+  vector<vector<int> > isinbondshelper(np); //vector equivalent of threeisinbonds, for dynamic alloc
+  //Is in matrix form for convinience, later we place it as a 1D array in threeisinbonds
+
+  threekSprings = new double[nbonds];
+  threer0Springs = new double[nbonds];
+
+  
+  for(int i=0; i<np; i++) threeNbonds[i] = 0; //Initialize bond counter
+
+  for(int i=0; i<nbonds; i++){
+    for(int j=0; j<3;j++){
+      int particle;
+      file>>particle;
+      threebondList[3*i + j]= particle;
+      threeNbonds[ particle ]++; //Sum the bondcounter for the particle in this spring
+      isinbondshelper[particle].push_back(i); //particle is involved in spring i 
+    }
+    file>> threekSprings[i] >> threer0Springs[i];
+  }
+
+  //Now initialize the list of bonds index for each particle from the helper vector :
+  int Nbondsi;
+
+  int isinbondsDIM = 0;
+  fori(0, np){
+    threeCumulativeIndex[i] = isinbondsDIM;
+    isinbondsDIM += threeNbonds[i];
+  }
+  threeisinbonds = new int[isinbondsDIM];
+
+
+  for(int i=0;i<np;i++){//Transform 2D array in 1D array
+    Nbondsi = isinbondshelper[i].size();
+    if(Nbondsi!= threeNbonds[i]) cout<<"ERROR in create bonded forces!!"<<endl;
+    forj(0,Nbondsi) threeisinbonds[threeCumulativeIndex[i]+j] = isinbondshelper[i][j];
+  }
+
+
+  /*
+  fori(0, nbonds*3) cout<<threebondList[i]<<" ";
+  cout<<endl;
+  
+  fori(0, np) cout<<threeNbonds[i]<<" ";
+  cout<<endl;
+
+  fori(0, isinbondsDIM) cout<<threeisinbonds[i]<<" ";
+  cout<<endl;
+  
+  fori(0, np) cout<<threeCumulativeIndex[i]<<" ";
+  cout<<endl;
+  */
+ 
+
+  //Now all CPU info is stored
+  cout<<"THREE BONDED SPRINGS DONE!!!"<<endl;
+  return true;
+}
 
 
 

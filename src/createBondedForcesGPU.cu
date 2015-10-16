@@ -57,6 +57,67 @@ __global__ void initBondedForcesVariables(bondedForcesVariables* bFV,
 
 
 
+//*!R Upoad all to the GPU and link to the struct!
+
+
+__global__ void initThreeBondedForcesVariables(threeParticleBondsVariables *tPBV,
+					       int *threebondListGPU,
+					       double *threekSpringsGPU,
+					       double *threer0SpringsGPU,
+					       int *threeNbondsGPU,
+					       int *threeisinbondsGPU,
+					       int *threeCumulativeIndexGPU){
+
+  int i = blockDim.x * blockIdx.x + threadIdx.x;
+  if(i>0) return;   
+
+  tPBV->bondList         =   threebondListGPU;
+  tPBV->kSprings         =   threekSpringsGPU;
+  tPBV->r0Springs        =   threer0SpringsGPU;
+  tPBV->Nbonds           =   threeNbondsGPU;
+  tPBV->isinbonds        =   threeisinbondsGPU;
+  tPBV->cumulative_index =   threeCumulativeIndexGPU;
+
+}
+
+bool createThreeBondedForcesGPU(){
+  cudaMemcpyToSymbol(threeBondedForcesGPU,&threeBondedForces,sizeof(bool));
+  
+  int isinbondsDIM = threeCumulativeIndex[np-1] + threeNbonds[np-1];
+  cutilSafeCall(cudaMalloc((void**)&tPBV                    , sizeof(threeParticleBondsVariables)));
+  cutilSafeCall(cudaMalloc((void**)&threebondListGPU        , 3*NbondsThreeParticle*sizeof(int)));
+  cutilSafeCall(cudaMalloc((void**)&threekSpringsGPU        , NbondsThreeParticle*sizeof(double)));
+  cutilSafeCall(cudaMalloc((void**)&threer0SpringsGPU       , NbondsThreeParticle*sizeof(double)));
+  cutilSafeCall(cudaMalloc((void**)&threeNbondsGPU          , np*sizeof(int)));
+  cutilSafeCall(cudaMalloc((void**)&threeisinbondsGPU       , isinbondsDIM*sizeof(int)));
+  cutilSafeCall(cudaMalloc((void**)&threeCumulativeIndexGPU , np*sizeof(int)));
+
+  //Copy global memory
+  cutilSafeCall(cudaMemcpy(threebondListGPU, threebondList,
+			   3*NbondsThreeParticle*sizeof(int),cudaMemcpyHostToDevice));
+  cutilSafeCall(cudaMemcpy(threekSpringsGPU, threekSprings,
+			   NbondsThreeParticle*sizeof(double),cudaMemcpyHostToDevice));
+  cutilSafeCall(cudaMemcpy(threer0SpringsGPU, threer0Springs,
+			   NbondsThreeParticle*sizeof(double),cudaMemcpyHostToDevice));
+  cutilSafeCall(cudaMemcpy(threeNbondsGPU, threeNbonds,
+			   np*sizeof(int),cudaMemcpyHostToDevice));
+  cutilSafeCall(cudaMemcpy(threeisinbondsGPU, threeisinbonds,  
+			   isinbondsDIM*sizeof(int),cudaMemcpyHostToDevice));
+  cutilSafeCall(cudaMemcpy(threeCumulativeIndexGPU, threeCumulativeIndex,  
+			   np*sizeof(int),cudaMemcpyHostToDevice));
+
+
+  initThreeBondedForcesVariables<<<1,1>>>(tPBV,	
+					  threebondListGPU,
+					  threekSpringsGPU,
+					  threer0SpringsGPU,
+					  threeNbondsGPU,
+					  threeisinbondsGPU,
+					  threeCumulativeIndexGPU);
+
+  return true;
+}
+
 bool createBondedForcesGPU(){
 
   //Copy constant memory
@@ -144,9 +205,5 @@ bool createBondedForcesGPU(){
 				     rxFixedPointGPU,
 				     ryFixedPointGPU,
 				     rzFixedPointGPU);
-
-
-
-
   return 1;
 }

@@ -356,6 +356,12 @@ typedef struct{
  * 	A list with all springs constants, DIM= dim(bondList)/3
  * @var threeParticleBondsVariables::r0Springs
  * 	Same as kSprings, but for the equilibrium distance
+ * @var threeParticleBondsVariables::Nbonds
+ *      number of bonds each particle is involved in.
+ * @var threeParticleBondsVariables::isinbonds
+ *      list of bonds each particle is involved in. all stacked
+ * @var threeParticleBondsVariables::cumulative_index
+ *      for each particle, index at wich the isinbonds list starts for that particle (sum(Nbonds[0:i-1]))
  * 
  * 
  */
@@ -363,11 +369,23 @@ typedef struct{
   int *bondList;
   double *kSprings;
   double *r0Springs;
-  
+  int *Nbonds;
+  int *isinbonds;
+  int *cumulative_index;
   
 } threeParticleBondsVariables;
 
+int *threebondListGPU;
+double *threekSpringsGPU;
+double *threer0SpringsGPU;
+int *threeNbondsGPU;
+int *threeisinbondsGPU;
+int *threeCumulativeIndexGPU;
+   
+
+
 __constant__ bool bondedForcesGPU;
+__constant__ bool threeBondedForcesGPU;
 bondedForcesVariables *bFV;
 threeParticleBondsVariables *tPBV;
 int *bondsParticleParticleGPU;

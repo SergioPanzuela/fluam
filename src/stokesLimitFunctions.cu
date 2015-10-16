@@ -91,7 +91,8 @@ __global__ void kernelSpreadParticlesForceStokesLimit(const double* rxcellGPU,
 						      double* vzboundaryGPU,
 						      particlesincell* pc,
 						      int* errorKernel,
-						      const bondedForcesVariables* bFV){
+						      const bondedForcesVariables* bFV,
+						      const threeParticleBondsVariables* tPBV){
   
   int i = blockDim.x * blockIdx.x + threadIdx.x;
   if(i>=(npGPU)) return;   
@@ -156,6 +157,17 @@ __global__ void kernelSpreadParticlesForceStokesLimit(const double* rxcellGPU,
 				   rz,
 				   bFV);
   }
+  if(threeBondedForcesGPU){
+     forceBondedThreeParticleGPU(i,
+				 fx,
+				 fy,
+				 fz,
+				 rx,
+				 ry,
+				 rz,
+				 tPBV);
+  }
+  
     
   double rxij, ryij, rzij, r2;
 
@@ -2918,7 +2930,8 @@ __global__ void particlesForceStokesLimit(double* vxboundaryGPU,//Fx, this is th
 					  double* vzboundaryGPU,
 					  particlesincell* pc,
 					  int* errorKernel,
-					  const bondedForcesVariables* bFV){
+					  const bondedForcesVariables* bFV,
+					  const threeParticleBondsVariables* tPBV){
   
   int i = blockDim.x * blockIdx.x + threadIdx.x;
   if(i>=(npGPU)) return;   
@@ -2984,6 +2997,17 @@ __global__ void particlesForceStokesLimit(double* vxboundaryGPU,//Fx, this is th
 				   bFV);
   }
     
+
+  if(threeBondedForcesGPU){
+    forceBondedThreeParticleGPU(i,
+				fx,
+				fy,
+				fz,
+				rx,
+				ry,
+				rz,
+				tPBV);
+  }
   double rxij, ryij, rzij, r2;
 
   int vecino0, vecino1, vecino2, vecino3, vecino4, vecino5;
