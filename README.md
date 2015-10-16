@@ -1,4 +1,6 @@
 ###About this branch
+This branch is only tested with **Stokes limit**!!
+
 This branch is capable of computing semiflexible three particle bonds.
 
 There is a new optional entry **threeBondedForces** in data.main. This allows you to provide a file with information about the bonds as follows:
