@@ -9,25 +9,26 @@ particles		1
 colors 			1
 
 #Cutoff for the particle-particle interaction
-cutoff                  4
+cutoff                  6
 #Give file with the bonded force between particles (see fluam/bin/inputfile/README)
-bondedForces	    	        N20.bonds2
+#bondedForces	    	        N2.bonds
+threeBondedForces 		N2.3bonds
 #Maximum number of particles in the neighbor list
-maxNumberPartInCellNonBonded    100
-maxNumberPartInCell     	100
+maxNumberPartInCellNonBonded    40
+maxNumberPartInCell     	40
 
 #Fluid density
 densfluid               1
 #Shear viscosity
 shearviscosity          1
 #Temperature in energy units (T -> k_B*T)
-temperature             1
+temperature             0.1
 
 
 #Number of fluid cells in the directions x, y and z
-cells			25	25	25
+cells			10	10	10
 #Dimensions of the simulation box
-celldimension	   	35      35	35
+celldimension	   	10      10	10
 
 
 #Fluid initial conditions
@@ -60,12 +61,12 @@ coordinates		N20.pos
 #Number of relaxation steps during which fluam save no data
 numstepsRelaxation	0
 #Number of steps (no counting numstepsRelaxation)
-numsteps                1000000
+numsteps                100000
 #Save data every samplefreq steps
-samplefreq              500
+samplefreq             	1000
 savefreq		0
 #Time step
-dt			0.1
+dt			1
 
 
 #Save data in VTK format to be visualized with the program VisIt
