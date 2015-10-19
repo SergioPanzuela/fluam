@@ -6,7 +6,7 @@
 #Chose scheme
 stokesLimit
 particles		1
-
+colors 			1
 
 #Cutoff for the particle-particle interaction
 cutoff                  4

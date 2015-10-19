@@ -49,6 +49,7 @@ EXTERN_PARTICLES double *vxParticle, *vyParticle, *vzParticle;
 EXTERN_PARTICLES double *vxParticleI, *vyParticleI, *vzParticleI;
 EXTERN_PARTICLES double volumeParticle;
 EXTERN_PARTICLES bool loadparticles;
+EXTERN_PARTICLES bool loadcolors;
 EXTERN_PARTICLES double cutoff;
 EXTERN_PARTICLES int numNeighbors;
 EXTERN_PARTICLES bool setVolumeParticle;

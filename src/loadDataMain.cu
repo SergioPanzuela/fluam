@@ -42,6 +42,7 @@ const string wsoretCoefficient="soretCoefficient";
 const string wbackgroundvelocity="backgroundvelocity";
 const string wsetDevice="setDevice";
 const string wsetparticles="particles";
+const string wsetcolors="colors";
 const string wparticlesdata="particlesdata";
 string particlesdata;
 const string wsetboundary="boundary";
@@ -171,6 +172,7 @@ bool loadDataMain(int argc, char* argv[]){
   savedensity = 0;
   volumeboundaryconst = 8.;
   loadparticles=0;
+  loadcolors=0;
   maxNumberPartInCell = 6;
   maxNumberPartInCellNonBonded = 6;
   cutoff = 0.;
@@ -290,6 +292,10 @@ bool loadDataMain(int argc, char* argv[]){
     
     if(word==wsetparticles){
       fileinput >> setparticles;
+    }
+
+    else if(word==wsetcolors){
+      fileinput >> loadcolors;
     }
     //NEW_PARAMETER
     else if(word==widentity_prefactor){
