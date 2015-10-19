@@ -22,7 +22,7 @@ densfluid               1
 #Shear viscosity
 shearviscosity          1
 #Temperature in energy units (T -> k_B*T)
-temperature             0
+temperature             0.1
 
 
 #Number of fluid cells in the directions x, y and z
@@ -66,7 +66,7 @@ numsteps                100000
 samplefreq             	1
 savefreq		0
 #Time step
-dt			1
+dt			0.1
 
 
 #Save data in VTK format to be visualized with the program VisIt
