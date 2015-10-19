@@ -105,7 +105,7 @@ __device__ void forceBondedThreeParticleGPU(const int i,
       fx = ampli * (-a3*(rij[0]/rij2 + ril[0]/ril2) + (1/a2)*(rij[0] + ril[0]));
       fy = ampli * (-a3*(rij[1]/rij2 + ril[1]/ril2) + (1/a2)*(rij[1] + ril[1]));
       fz = ampli * (-a3*(rij[2]/rij2 + ril[2]/ril2) + (1/a2)*(rij[2] + ril[2]));
-      
+      /*
       //First spring
       r = rij1;
 
@@ -119,7 +119,7 @@ __device__ void forceBondedThreeParticleGPU(const int i,
       fx += -kSpring * (r - r0) * (rl[0] - ri[0]);
       fy += -kSpring * (r - r0) * (rl[1] - ri[1]);
       fz += -kSpring * (r - r0) * (rl[2] - ri[2]);
-      
+      */
     }
     else if(i==p3){
       fx = ampli * (a3*ril[0]/ril2 - rij[0]/a2);

@@ -22,7 +22,7 @@ densfluid               1
 #Shear viscosity
 shearviscosity          1
 #Temperature in energy units (T -> k_B*T)
-temperature             0.1
+temperature             0
 
 
 #Number of fluid cells in the directions x, y and z
@@ -63,7 +63,7 @@ numstepsRelaxation	0
 #Number of steps (no counting numstepsRelaxation)
 numsteps                100000
 #Save data every samplefreq steps
-samplefreq             	1000
+samplefreq             	1
 savefreq		0
 #Time step
 dt			1
