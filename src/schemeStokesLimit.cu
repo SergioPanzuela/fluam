@@ -40,7 +40,9 @@ bool schemeStokesLimit(){
   //New bonded forces
   if(bondedForces)
     if(!initializeBondedForces()) return 0;
-
+  if(threeBondedForces)
+    if(!initializeThreeBondedForces()) return 0;
+  
   //Initialize the fluid
   if(!initializeFluid()) return 0;
 
@@ -56,7 +58,9 @@ bool schemeStokesLimit(){
   //New bonded forces
   if(bondedForces)
     if(!createBondedForcesGPU()) return 0;
-
+  if(threeBondedForces)
+    if(!createThreeBondedForcesGPU()) return 0;
+  
   //Initialize save functions
   if(!saveFunctionsSchemeStokesLimit(0,0)) return 0;
 

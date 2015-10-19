@@ -85,6 +85,7 @@ const string wCheckVelocity="checkVelocity";
 const string wsaveFluid="saveFluid";
 const string wsaveVTK="saveVTK";
 const string wbondedForces="bondedForces";
+const string wthreeBondedForces="threeBondedForces";
 const string wcomputeNonBondedForces="computeNonBondedForces";
 
 const string wGhost="ghost";
@@ -189,6 +190,7 @@ bool loadDataMain(int argc, char* argv[]){
   mass = 0;
   nboundary = 0;
   bondedForces=0;
+  threeBondedForces = 0;
   computeNonBondedForces=1;
   setVolumeParticle=0;
   //DEFAULT PARAMETERS 
@@ -444,6 +446,10 @@ bool loadDataMain(int argc, char* argv[]){
     else if(word==wbondedForces){
       bondedForces=1;
       fileinput >> bondedForcesFile;
+    }
+    else if(word==wthreeBondedForces){
+      threeBondedForces=1;
+      fileinput >> threeBondedForcesFile;
     }
     else if(word==wcomputeNonBondedForces){
       fileinput >> computeNonBondedForces;

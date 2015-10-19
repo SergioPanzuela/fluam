@@ -1,3 +1,32 @@
+###About this branch
+This branch is only tested with **Stokes limit**!!
+
+This branch is capable of computing semiflexible three particle bonds.
+
+There is a new optional entry **threeBondedForces** in data.main. This allows you to provide a file with information about the bonds as follows:
+
+    Example:
+      
+	          O 4
+	          |
+	    0     |     2     3
+	    O-----O-----O-----O
+	         1|
+	          |
+	      	  O 5
+	
+
+	  BondList.dat would be:
+	  3
+	  0 1 2 k r0
+	  1 2 3 k r0
+	  4 1 5 k r0
+	  
+    The order of the bonds in the file does not matter
+
+
+
+
 ####Fluam a fluctuating hydrodynamic code
 ###About this branch
 The **Colors** branch allows you to stablish a different interaction for every pair based on an assigned particle type. Currently included only for the Stokes Limit scheme
@@ -44,12 +73,16 @@ Both Aij and Bij matrices should be symmetric.
 **fluam** is a code for fluctuating hydrodynamics with immersed structures based
 on the immersed boundary method. It offers fluid solvers for the compressible and
 incompressible Navier-Stokes equations,
-* **Staggered Schemes for Fluctuating Hydrodynamics**, F. Balboa Usabiaga, J. B. Bell, R. Delgado-Buscalioni, A. Donev, T. G. Fai, B. E. Griffith andC. S. Peskin. Multiscale Modeling & Simulation, **10** (3), 1369 (2012). [http://arxiv.org/abs/1108.5188]
+* **Staggered Schemes for Fluctuating Hydrodynamics**, F. Balboa Usabiaga, J. B. Bell, R. Delgado-Buscalioni, A. Donev, T. G. Fai, B. E. Griffith andC. S. Peskin. Multiscale Modeling & Simulation, **10** (3), 1369 (2012). 
+[DOI](https://dx.doi.org/10.1137/120864520) [arXiv](http://arxiv.org/abs/1108.5188)
  
 and particle solvers for regimes ranging from the acoustic time scales to the Stokes limit,
-* **Minimal model for acoustic forces on Brownian particles**, F. Balboa Usabiaga and R. Delgado-Buscalioni. Physical Review E, **88**, 063304 (2013). [http://arxiv.org/abs/1307.0702] 
-* **Inertial coupling method for particles in an incompressible fluctuating fluid**, F. Balboa Usabiaga, R. Delgado-Buscalioni, B. E. Griffith and A. Donev. Computer Methods in Applied Mechanics and Engineering, **269**, 139 (2014). [http://arxiv.org/abs/1212.6427]
-* **Brownian Dynamics without Green's Functions**, S. Delong, F. Balboa Usabiaga, R. Delgado-Buscalioni, B. E. Griffith and A. Donev. The Journal of Chemical Physics, **140** (13), 134110 (2014). [http://arxiv.org/abs/1401.4198]
+* **Minimal model for acoustic forces on Brownian particles**, F. Balboa Usabiaga and R. Delgado-Buscalioni. Physical Review E, **88**, 063304 (2013). 
+[DOI](https://dx.doi.org/10.1103/PhysRevE.88.063304) [arXiv](http://arxiv.org/abs/1307.0702)
+* **Inertial coupling method for particles in an incompressible fluctuating fluid**, F. Balboa Usabiaga, R. Delgado-Buscalioni, B. E. Griffith and A. Donev. Computer Methods in Applied Mechanics and Engineering, **269**, 139 (2014). 
+[DOI](https://dx.doi.org/10.1016/j.cma.2013.10.029) [arXiv](http://arxiv.org/abs/1212.6427)
+* **Brownian Dynamics without Green's Functions**, S. Delong, F. Balboa Usabiaga, R. Delgado-Buscalioni, B. E. Griffith and A. Donev. The Journal of Chemical Physics, **140** (13), 134110 (2014). 
+[DOI](https://dx.doi.org/10.1063/1.4869866) [arXiv](http://arxiv.org/abs/1401.4198)
 
 
 ##1. Installation instructions

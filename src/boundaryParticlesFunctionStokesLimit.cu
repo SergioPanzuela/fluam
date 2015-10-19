@@ -62,8 +62,12 @@ void boundaryParticlesFunctionStokesLimit(int option,
 	 vzboundaryGPU,
 	 pc,errorKernel,
 	 bFV,
+<<<<<<< HEAD
          pt 
 	);
+=======
+	 tPBV);
+>>>>>>> three_body_springs
 
       //Set vxGPU to zero
       setFieldToZeroInput<<<numBlocks,threadsPerBlock>>>(vxGPU,vyGPU,vzGPU);
@@ -131,8 +135,12 @@ void boundaryParticlesFunctionStokesLimit(int option,
        vzboundaryGPU,
        pc,errorKernel,
        bFV,
+<<<<<<< HEAD
        pt
 	);
+=======
+       tPBV);
+>>>>>>> three_body_springs
 
     //Set vxGPU to zero
     setFieldToZeroInput<<<numBlocks,threadsPerBlock>>>(vxGPU,vyGPU,vzGPU);

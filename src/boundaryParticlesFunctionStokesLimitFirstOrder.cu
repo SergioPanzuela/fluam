@@ -62,8 +62,8 @@ void boundaryParticlesFunctionStokesLimitFirstOrder(int option,
 	 vzboundaryGPU,
 	 pc,errorKernel,
 	 bFV,
-	 pt
-	);
+	 pt,
+	 tPBV);
 
       //Set vxGPU to zero
       setFieldToZeroInput<<<numBlocks,threadsPerBlock>>>(vxGPU,vyGPU,vzGPU);
@@ -179,8 +179,8 @@ void boundaryParticlesFunctionStokesLimitFirstOrder(int option,
 	   pc,
 	   errorKernel,
 	   bFV,
-	   pt
-	  );
+	   pt,
+	   tPBV);
       }
 
 

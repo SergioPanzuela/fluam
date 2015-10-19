@@ -1,1 +1,25 @@
 bin/
+=======
+# Compiled source #
+###################
+*.o
+*.mod
+
+# tmp files #
+############
+*~
+
+# Makefiles #
+#############
+
+
+# Input files #
+###############
+
+
+# Exclude some folders #
+########################
+data/
+work/
+bin/
+
