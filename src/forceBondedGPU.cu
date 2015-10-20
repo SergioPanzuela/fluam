@@ -72,7 +72,7 @@ __device__ void forceBondedThreeParticleGPU(const int i,
     ril2 = ril[0]*ril[0] + ril[1]*ril[1] + ril[2]*ril[2];
     ril1 = sqrt(ril2);
 
-    a1 = rij[0]*ril[0] + rij[1]*ril[1] * rij[2]*ril[2];
+    a1 = rij[0]*ril[0] + rij[1]*ril[1] + rij[2]*ril[2];
     a2 = rij1*ril1;
     a3 = a1/a2;             //a3 = cos (teta) = rij*ril / mod(rij)*mod(ril)                           
 
@@ -81,11 +81,12 @@ __device__ void forceBondedThreeParticleGPU(const int i,
     kSpring = tPBV->kSprings[bond];
     //Equilibrium distance 
     r0 = tPBV->r0Springs[bond];  
-    
+    /*    
     if(a3<=-0.9999){
       ampli = -kSpring*sqrt(2.0/(1-a3));
     }
-    else ampli = kSpring * (acos(a3)-3.1415)/sqrt(1-a3*a3);
+    */
+     ampli = kSpring * (acos(a3)-3.1415)/sqrt(1-a3*a3);
     
 
     //p1 is j, p2 is i, p3 is l
@@ -96,43 +97,43 @@ __device__ void forceBondedThreeParticleGPU(const int i,
       fz += ampli * (a3*rij[2]/rij2 - ril[2]/a2);
       
       r = rij1;
-      fx += -kSpring * (r - r0) * (rj[0] - ri[0]);
-      fy += -kSpring * (r - r0) * (rj[1] - ri[1]);
-      fz += -kSpring * (r - r0) * (rj[2] - ri[2]);
+      fx += -kSpring * (1 - r0/r) * (rj[0] - ri[0]);
+      fy += -kSpring * (1 - r0/r) * (rj[1] - ri[1]);
+      fz += -kSpring * (1 - r0/r) * (rj[2] - ri[2]);
       
     }
     else if(i==p2){
-      fx = ampli * (-a3*(rij[0]/rij2 + ril[0]/ril2) + (1/a2)*(rij[0] + ril[0]));
-      fy = ampli * (-a3*(rij[1]/rij2 + ril[1]/ril2) + (1/a2)*(rij[1] + ril[1]));
-      fz = ampli * (-a3*(rij[2]/rij2 + ril[2]/ril2) + (1/a2)*(rij[2] + ril[2]));
-      /*
+      
+      fx += ampli * (-a3*(rij[0]/rij2 + ril[0]/ril2) + (1/a2)*(rij[0] + ril[0]));
+      fy += ampli * (-a3*(rij[1]/rij2 + ril[1]/ril2) + (1/a2)*(rij[1] + ril[1]));
+      fz += ampli * (-a3*(rij[2]/rij2 + ril[2]/ril2) + (1/a2)*(rij[2] + ril[2]));
+      
       //First spring
       r = rij1;
 
-      fx += -kSpring * (r - r0) * (rj[0] - ri[0]);
-      fy += -kSpring * (r - r0) * (rj[1] - ri[1]);
-      fz += -kSpring * (r - r0) * (rj[2] - ri[2]);
+      fx += -kSpring * (1 - r0/r) * (ri[0] - rj[0]);
+      fy += -kSpring * (1 - r0/r) * (ri[1] - rj[1]);
+      fz += -kSpring * (1 - r0/r) * (ri[2] - rj[2]);
       
       //Second spring
       r = ril1;
 
-      fx += -kSpring * (r - r0) * (rl[0] - ri[0]);
-      fy += -kSpring * (r - r0) * (rl[1] - ri[1]);
-      fz += -kSpring * (r - r0) * (rl[2] - ri[2]);
-      */
+      fx += -kSpring * (1 - r0/r) * (ri[0] - rl[0]);
+      fy += -kSpring * (1 - r0/r) * (ri[1] - rl[1]);
+      fz += -kSpring * (1 - r0/r) * (ri[2] - rl[2]);
+      
     }
     else if(i==p3){
-      fx = ampli * (a3*ril[0]/ril2 - rij[0]/a2);
-      fy = ampli * (a3*ril[1]/ril2 - rij[1]/a2);
-      fz = ampli * (a3*ril[2]/ril2 - rij[2]/a2);
-         
+      fx += ampli * (a3*ril[0]/ril2 - rij[0]/a2);
+      fy += ampli * (a3*ril[1]/ril2 - rij[1]/a2);
+      fz += ampli * (a3*ril[2]/ril2 - rij[2]/a2);
+      
       r = ril1;
 
-      fx += -kSpring * (r - r0) * (rl[0] - ri[0]);
-      fy += -kSpring * (r - r0) * (rl[1] - ri[1]);
-      fz += -kSpring * (r - r0) * (rl[2] - ri[2]);
-      
-      
+      fx += -kSpring * (1 - r0/r) * (rl[0] - ri[0]);
+      fy += -kSpring * (1 - r0/r) * (rl[1] - ri[1]);
+      fz += -kSpring * (1 - r0/r) * (rl[2] - ri[2]);
+            
     }
 
     //printf("i=%d\n %.3f %.3f %.3f %.3f %.3f %.3f %.3f\n",i, a1, a2, a3, ampli, fx, fy, fz);

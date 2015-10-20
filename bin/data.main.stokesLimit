@@ -9,9 +9,9 @@ particles		1
 colors 			1
 
 #Cutoff for the particle-particle interaction
-cutoff                  6
+cutoff                  20
 #Give file with the bonded force between particles (see fluam/bin/inputfile/README)
-#bondedForces	    	        N2.bonds
+bondedForces	    	        N2.bonds
 threeBondedForces 		N2.3bonds
 #Maximum number of particles in the neighbor list
 maxNumberPartInCellNonBonded    40
@@ -28,7 +28,7 @@ temperature             0.1
 #Number of fluid cells in the directions x, y and z
 cells			10	10	10
 #Dimensions of the simulation box
-celldimension	   	10      10	10
+celldimension	   	20      20	20
 
 
 #Fluid initial conditions
@@ -61,9 +61,9 @@ coordinates		N20.pos
 #Number of relaxation steps during which fluam save no data
 numstepsRelaxation	0
 #Number of steps (no counting numstepsRelaxation)
-numsteps                100000
+numsteps                10000
 #Save data every samplefreq steps
-samplefreq             	1
+samplefreq             	100
 savefreq		0
 #Time step
 dt			0.1
