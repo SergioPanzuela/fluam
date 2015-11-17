@@ -1,7 +1,43 @@
 ###About this branch
 This branch is only tested with **Stokes limit**!!
 
-This branch is capable of computing semiflexible three particle bonds.
+
+The **Colors** functionality allows you to stablish a different interaction for every pair based on an assigned particle type. Currently included only for the Stokes Limit scheme
+
+You can turn this option on in data.main using the line "colors       1". This way the program will look for the colors in the particle coord file.
+
+
+Therefore, with colors on, the coords input needs an additional column containing the particle types, starting from 0.
+
+    N
+    x1 y1 z1 type1
+    x2 y2 z2 type2
+    . 
+    .
+    .
+
+Additionally you have to specify how many different types there are and two matrices with the parameters for both short and long range interactions, this needs to be in a file called LJ.in.
+    
+    ntypes
+    A11 ... A1ntypes
+    .   .
+    .          .
+    .                 .
+    Antypes1 ... Antypes_ntypes
+    B11 ... B1ntypes
+    .   .
+    .        .
+    .	              .
+    Bntypes1 ... Bntypes_ntypes
+
+
+Both Aij and Bij matrices should be symmetric.
+
+
+
+
+
+The **Three body Springs** functionality is capable of computing semiflexible three particle bonds.
 
 There is a new optional entry **threeBondedForces** in data.main. This allows you to provide a file with information about the bonds as follows:
 
