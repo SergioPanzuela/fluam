@@ -1,8 +1,3 @@
-#Select the GPU to run fluam
-#In general it's better not to use this option
-#setDevice 0
-
-
 #Chose scheme
 stokesLimit
 particles		1
@@ -11,7 +6,8 @@ colors 			1
 #Cutoff for the particle-particle interaction
 cutoff                  3
 #Give file with the bonded force between particles (see fluam/bin/inputfile/README)
-bondedForces	    	        kk
+bondedForces	    	        multiblob.bonds
+
 #Maximum number of particles in the neighbor list
 maxNumberPartInCellNonBonded    50
 maxNumberPartInCell     	50
@@ -39,10 +35,8 @@ initfluid 1
 
 #To give an initial configuration for the particles
 #set loadparticles to 1 and provide the file for initial configuration
-#and optionally a file for the initial velocities.
-#If no file is given the particles start in simple cubic lattice.
 loadparticles		1
-coordinates		N20.pos2
+coordinates		multiblob.pos
 
 #Number of relaxation steps during which fluam save no data
 numstepsRelaxation	0
