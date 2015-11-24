@@ -9,12 +9,12 @@ particles		1
 colors 			1
 
 #Cutoff for the particle-particle interaction
-cutoff                  4
+cutoff                  3
 #Give file with the bonded force between particles (see fluam/bin/inputfile/README)
-bondedForces	    	        N20.bonds2
+bondedForces	    	        kk
 #Maximum number of particles in the neighbor list
-maxNumberPartInCellNonBonded    100
-maxNumberPartInCell     	100
+maxNumberPartInCellNonBonded    50
+maxNumberPartInCell     	50
 
 #Fluid density
 densfluid               1
@@ -25,9 +25,9 @@ temperature             1
 
 
 #Number of fluid cells in the directions x, y and z
-cells			25	25	25
+cells			30	30	30
 #Dimensions of the simulation box
-celldimension	   	35      35	35
+celldimension	   	30.0      30.0	30.0
 
 
 #Fluid initial conditions
@@ -35,9 +35,6 @@ celldimension	   	35      35	35
 #initfluid=1, initial velocity=backgroundvelocity+randomFluctuations and density=density_0
 #See file fluam/src/initializeFluid.cpp
 initfluid 1
-#Give background velocity components vx, vy, vz. If not one is given
-#the background velocity is set to zero
-backgroundvelocity 	 0	  	0	    0
 
 
 #To give an initial configuration for the particles
@@ -45,40 +42,19 @@ backgroundvelocity 	 0	  	0	    0
 #and optionally a file for the initial velocities.
 #If no file is given the particles start in simple cubic lattice.
 loadparticles		1
-coordinates		N20.pos
-#velocities		vel.dat
-
-#Give initial fluid configuration. If not one is given fluam uses the option given in initfluid
-#fluid			/home/floren/gblob/data/gVsReynolds/quasiNeutrallyBuoyant/run57.fluidFinalConfiguration
-
-
-#Seed to feed the random number generator. If no one is given
-#fluam takes one from the computer clock.
-#seed			1
-
+coordinates		N20.pos2
 
 #Number of relaxation steps during which fluam save no data
 numstepsRelaxation	0
 #Number of steps (no counting numstepsRelaxation)
 numsteps                1000000
 #Save data every samplefreq steps
-samplefreq              500
-savefreq		0
+samplefreq              1000
+
 #Time step
-dt			0.1
-
-
-#Save data in VTK format to be visualized with the program VisIt
-#See file saveFluidVTK.cu and the web https://wci.llnl.gov/simulation/computer-codes/visit/
-#saveVTK		0
+dt			0.0002
 
 
 #Prefix for the output files. The directory where the data is saved
 #should exist before running fluam
 outputname		../data/run1
-
-
-
-
-
-
