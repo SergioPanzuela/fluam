@@ -238,15 +238,19 @@ bool runSchemeQuasiNeutrallyBuoyant(){
     //STEP 2: CALCULATE FORCES AND SPREAD THEM TO THE FLUID S^{n+1/2} * F^{n+1/2}
     //Fill "countparticlesincellX" lists
     //and spread particle force F 
-    kernelSpreadParticlesForce<<<numBlocksParticles,threadsPerBlockParticles>>>(rxcellGPU,
-										rycellGPU,
-										rzcellGPU,
-										fxboundaryGPU,
-										fyboundaryGPU,
-										fzboundaryGPU,
-										pc,
-										errorKernel,
-										bFV);    
+    //!*R Colors and three body springs enabled
+    kernelSpreadParticlesForceColors<<<numBlocksParticles,threadsPerBlockParticles>>>(rxcellGPU,
+										      rycellGPU,
+										      rzcellGPU,
+										      fxboundaryGPU,
+										      fyboundaryGPU,
+										      fzboundaryGPU,
+										      pc,
+										      errorKernel,
+										      bFV,
+										      pt,
+										      tPBV
+										      );    
 
 
 

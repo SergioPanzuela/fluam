@@ -18,6 +18,1104 @@
 // along with Fluam. If not, see <http://www.gnu.org/licenses/>.
 
 
+
+
+//!*R New kernelSpread with Colors and three springs, tested with quasiNeutrally
+//Fill "countparticlesincellX" lists
+//and spread particle force F, The force comes from LJ function in nonBondedForce.cu
+__global__ void kernelSpreadParticlesForceColors(const double* rxcellGPU, 
+						 const double* rycellGPU, 
+						 const double* rzcellGPU,
+						 double* fxboundaryGPU,
+						 double* fyboundaryGPU,
+						 double* fzboundaryGPU,
+						 particlesincell* pc,
+						 int* errorKernel,
+						 const bondedForcesVariables* bFV,
+						 const particle_type *pt,
+						 const threeParticleBondsVariables* tPBV){
+  
+  int i = blockDim.x * blockIdx.x + threadIdx.x;
+  if(i>=(npGPU)) return;   
+  
+  int type_i = pt->types[nboundaryGPU+i];
+  int type_j;
+
+
+  double fx = 0.;//pressurea0GPU;// * 0.267261241912424385 ;//0;
+  double fy = 0.;//pressurea0GPU * 0.534522483824848769 ;
+  double fz = 0.;//pressurea0GPU * 0.801783725737273154 ;
+  double f;
+ 
+
+  double rx = fetch_double(texrxboundaryGPU,nboundaryGPU+i);
+  double ry = fetch_double(texryboundaryGPU,nboundaryGPU+i);
+  double rz = fetch_double(texrzboundaryGPU,nboundaryGPU+i);
+  
+  //INCLUDE EXTERNAL FORCES HERE
+
+  //Example: harmonic potential 
+  // V(r) = (1/2) * k * ((x-x0)**2 + (y-y0)**2 + (z-z0)**2)
+  //
+  //with spring constant k=0.01
+  //and x0=y0=z0=0
+  //
+  //fx = -0.01*rx;
+  //fy = -0.01*ry;
+  //fz = -0.01*rz;
+
+
+
+  
+  if(particlesWallGPU){
+    //INCLUDE WALL REPULSION HERE
+    //We use a repulsive Lennard-Jones
+    double sigmaWall = 2*dyGPU;
+    double cutoffWall = 1.12246204830937302 * sigmaWall; // 2^{1/6} * sigmaWall
+
+    //IMPORTANT, for particleWall lyGPU stores ly+2*dy
+    if(ry<(-0.5*lyGPU+cutoffWall+dyGPU)){//Left wall
+      
+      double distance = (0.5*lyGPU-dyGPU) + ry; //distance >= 0
+      fy += 48 * temperatureGPU * (pow((sigmaWall/distance),13) - 0.5*pow((sigmaWall/distance),7));
+      
+    }
+    else if(ry>(0.5*lyGPU-cutoffWall-dyGPU)){//Right wall
+      
+      double distance = (0.5*lyGPU-dyGPU) - ry; //distance >= 0
+      fy -= 48 * temperatureGPU * (pow((sigmaWall/distance),13) - 0.5*pow((sigmaWall/distance),7));
+      
+    }
+  }
+
+
+
+
+
+  //NEW bonded forces
+  if(bondedForcesGPU){
+    //call function for bonded forces particle-particle
+    forceBondedParticleParticleGPU(i,
+				   fx,
+				   fy,
+				   fz,
+				   rx,
+				   ry,
+				   rz,
+				   bFV);
+  }
+  if(threeBondedForcesGPU){
+    forceBondedThreeParticleGPU(i,
+				fx,
+				fy,
+				fz,
+				rx,
+				ry,
+				rz,
+				tPBV);
+  }
+
+    
+  double rxij, ryij, rzij, r2;
+
+  int vecino0, vecino1, vecino2, vecino3, vecino4, vecino5;
+  int vecinopxpy, vecinopxmy, vecinopxpz, vecinopxmz;
+  int vecinomxpy, vecinomxmy, vecinomxpz, vecinomxmz;
+  int vecinopypz, vecinopymz, vecinomypz, vecinomymz;
+  int vecinopxpypz, vecinopxpymz, vecinopxmypz, vecinopxmymz;
+  int vecinomxpypz, vecinomxpymz, vecinomxmypz, vecinomxmymz;
+  
+  int icel;
+  double r, rp, rm;
+
+  {
+    double invdx = double(mxNeighborsGPU)/lxGPU;
+    double invdy = double(myNeighborsGPU)/lyGPU;
+    double invdz = double(mzNeighborsGPU)/lzGPU;
+    r = rx;
+    r = r - (int(r*invlxGPU + 0.5*((r>0)-(r<0)))) * lxGPU;
+    int jx   = int(r * invdx + 0.5*mxNeighborsGPU) % mxNeighborsGPU;
+    r = ry;
+    r = r - (int(r*invlyGPU + 0.5*((r>0)-(r<0)))) * lyGPU;
+    int jy   = int(r * invdy + 0.5*myNeighborsGPU) % myNeighborsGPU;
+    r = rz;
+    r = r - (int(r*invlzGPU + 0.5*((r>0)-(r<0)))) * lzGPU;
+    int jz   = int(r * invdz + 0.5*mzNeighborsGPU) % mzNeighborsGPU;
+    icel  = jx;
+    icel += jy * mxNeighborsGPU;
+    icel += jz * mxNeighborsGPU * myNeighborsGPU;    
+  }
+  
+  int np;
+  if(computeNonBondedForcesGPU){
+    //Particles in Cell i
+    np = tex1Dfetch(texCountParticlesInCellNonBonded,icel);
+    for(int j=0;j<np;j++){
+      int particle = tex1Dfetch(texPartInCellNonBonded,mNeighborsGPU*j+icel);
+      rxij =  (rx - fetch_double(texrxboundaryGPU,particle));
+      rxij =  (rxij - int(rxij*invlxGPU + 0.5*((rxij>0)-(rxij<0)))*lxGPU);
+      ryij =  (ry - fetch_double(texryboundaryGPU,particle));
+      ryij =  (ryij - int(ryij*invlyGPU + 0.5*((ryij>0)-(ryij<0)))*lyGPU);
+      rzij =  (rz - fetch_double(texrzboundaryGPU,particle));
+      rzij =  (rzij - int(rzij*invlzGPU + 0.5*((rzij>0)-(rzij<0)))*lzGPU);
+      r2 = rxij*rxij + ryij*ryij + rzij*rzij;
+      type_j = pt->types[particle];f =LJ(r2, pt->Aij_param, pt->Bij_param, type_i+ntypesGPU*type_j, nboundaryGPU+i, particle);
+      fx += f * rxij;
+      fy += f * ryij;
+      fz += f * rzij;
+    }  
+    //Particles in Cell vecino0
+    vecino0 = tex1Dfetch(texneighbor0GPU, icel);
+    np = tex1Dfetch(texCountParticlesInCellNonBonded,vecino0);
+    //printf("RRRRRRRRR %i %i %i\n",i,icel,vecino0);
+    for(int j=0;j<np;j++){
+      int particle = tex1Dfetch(texPartInCellNonBonded,mNeighborsGPU*j+vecino0);    
+      rxij =  (rx - fetch_double(texrxboundaryGPU,particle));
+      rxij =  (rxij - int(rxij*invlxGPU + 0.5*((rxij>0)-(rxij<0)))*lxGPU);
+      ryij =  (ry - fetch_double(texryboundaryGPU,particle));
+      ryij =  (ryij - int(ryij*invlyGPU + 0.5*((ryij>0)-(ryij<0)))*lyGPU);
+      rzij =  (rz - fetch_double(texrzboundaryGPU,particle));
+      rzij =  (rzij - int(rzij*invlzGPU + 0.5*((rzij>0)-(rzij<0)))*lzGPU);
+      r2 = rxij*rxij + ryij*ryij + rzij*rzij;
+      type_j = pt->types[particle];f =LJ(r2, pt->Aij_param, pt->Bij_param, type_i+ntypesGPU*type_j, nboundaryGPU+i, particle);
+      fx += f * rxij;
+      fy += f * ryij;
+      fz += f * rzij;
+    }
+    //Particles in Cell vecino1
+    vecino1 = tex1Dfetch(texneighbor1GPU, icel);
+    np = tex1Dfetch(texCountParticlesInCellNonBonded,vecino1);
+    for(int j=0;j<np;j++){
+      int particle = tex1Dfetch(texPartInCellNonBonded,mNeighborsGPU*j+vecino1);    
+      rxij =  (rx - fetch_double(texrxboundaryGPU,particle));
+      rxij =  (rxij - int(rxij*invlxGPU + 0.5*((rxij>0)-(rxij<0)))*lxGPU);
+      ryij =  (ry - fetch_double(texryboundaryGPU,particle));
+      ryij =  (ryij - int(ryij*invlyGPU + 0.5*((ryij>0)-(ryij<0)))*lyGPU);
+      rzij =  (rz - fetch_double(texrzboundaryGPU,particle));
+      rzij =  (rzij - int(rzij*invlzGPU + 0.5*((rzij>0)-(rzij<0)))*lzGPU);
+      r2 = rxij*rxij + ryij*ryij + rzij*rzij;
+      type_j = pt->types[particle];f =LJ(r2, pt->Aij_param, pt->Bij_param, type_i+ntypesGPU*type_j, nboundaryGPU+i, particle);
+      fx += f * rxij;
+      fy += f * ryij;
+      fz += f * rzij;
+    }
+    //Particles in Cell vecino2
+    vecino2 = tex1Dfetch(texneighbor2GPU, icel);
+    np = tex1Dfetch(texCountParticlesInCellNonBonded,vecino2);
+    for(int j=0;j<np;j++){
+      int particle = tex1Dfetch(texPartInCellNonBonded,mNeighborsGPU*j+vecino2);    
+      rxij =  (rx - fetch_double(texrxboundaryGPU,particle));
+      rxij =  (rxij - int(rxij*invlxGPU + 0.5*((rxij>0)-(rxij<0)))*lxGPU);
+      ryij =  (ry - fetch_double(texryboundaryGPU,particle));
+      ryij =  (ryij - int(ryij*invlyGPU + 0.5*((ryij>0)-(ryij<0)))*lyGPU);
+      rzij =  (rz - fetch_double(texrzboundaryGPU,particle));
+      rzij =  (rzij - int(rzij*invlzGPU + 0.5*((rzij>0)-(rzij<0)))*lzGPU);
+      r2 = rxij*rxij + ryij*ryij + rzij*rzij;
+      type_j = pt->types[particle];f =LJ(r2, pt->Aij_param, pt->Bij_param, type_i+ntypesGPU*type_j, nboundaryGPU+i, particle);
+      fx += f * rxij;
+      fy += f * ryij;
+      fz += f * rzij;
+    }
+    //Particles in Cell vecino3
+    vecino3 = tex1Dfetch(texneighbor3GPU, icel);
+    np = tex1Dfetch(texCountParticlesInCellNonBonded,vecino3);
+    for(int j=0;j<np;j++){
+      int particle = tex1Dfetch(texPartInCellNonBonded,mNeighborsGPU*j+vecino3);    
+      rxij =  (rx - fetch_double(texrxboundaryGPU,particle));
+      rxij =  (rxij - int(rxij*invlxGPU + 0.5*((rxij>0)-(rxij<0)))*lxGPU);
+      ryij =  (ry - fetch_double(texryboundaryGPU,particle));
+      ryij =  (ryij - int(ryij*invlyGPU + 0.5*((ryij>0)-(ryij<0)))*lyGPU);
+      rzij =  (rz - fetch_double(texrzboundaryGPU,particle));
+      rzij =  (rzij - int(rzij*invlzGPU + 0.5*((rzij>0)-(rzij<0)))*lzGPU);
+      r2 = rxij*rxij + ryij*ryij + rzij*rzij;
+      type_j = pt->types[particle];f =LJ(r2, pt->Aij_param, pt->Bij_param, type_i+ntypesGPU*type_j, nboundaryGPU+i, particle);
+      fx += f * rxij;
+      fy += f * ryij;
+      fz += f * rzij;
+    }
+    //Particles in Cell vecino4
+    vecino4 = tex1Dfetch(texneighbor4GPU, icel);
+    //printf("VECINO %i %i \n",icel,vecino4);
+    np = tex1Dfetch(texCountParticlesInCellNonBonded,vecino4);
+    for(int j=0;j<np;j++){
+      int particle = tex1Dfetch(texPartInCellNonBonded,mNeighborsGPU*j+vecino4);    
+      rxij =  (rx - fetch_double(texrxboundaryGPU,particle));
+      rxij =  (rxij - int(rxij*invlxGPU + 0.5*((rxij>0)-(rxij<0)))*lxGPU);
+      ryij =  (ry - fetch_double(texryboundaryGPU,particle));
+      ryij =  (ryij - int(ryij*invlyGPU + 0.5*((ryij>0)-(ryij<0)))*lyGPU);
+      rzij =  (rz - fetch_double(texrzboundaryGPU,particle));
+      rzij =  (rzij - int(rzij*invlzGPU + 0.5*((rzij>0)-(rzij<0)))*lzGPU);
+      r2 = rxij*rxij + ryij*ryij + rzij*rzij;
+      type_j = pt->types[particle];f =LJ(r2, pt->Aij_param, pt->Bij_param, type_i+ntypesGPU*type_j, nboundaryGPU+i, particle);
+      fx += f * rxij;
+      fy += f * ryij;
+      fz += f * rzij;
+    }
+    //Particles in Cell vecino5
+    vecino5 = tex1Dfetch(texneighbor5GPU, icel);
+    np = tex1Dfetch(texCountParticlesInCellNonBonded,vecino5);
+    for(int j=0;j<np;j++){
+      int particle = tex1Dfetch(texPartInCellNonBonded,mNeighborsGPU*j+vecino5);
+      rxij =  (rx - fetch_double(texrxboundaryGPU,particle));
+      rxij =  (rxij - int(rxij*invlxGPU + 0.5*((rxij>0)-(rxij<0)))*lxGPU);
+      ryij =  (ry - fetch_double(texryboundaryGPU,particle));
+      ryij =  (ryij - int(ryij*invlyGPU + 0.5*((ryij>0)-(ryij<0)))*lyGPU);
+      rzij =  (rz - fetch_double(texrzboundaryGPU,particle));
+      rzij =  (rzij - int(rzij*invlzGPU + 0.5*((rzij>0)-(rzij<0)))*lzGPU);
+      r2 = rxij*rxij + ryij*ryij + rzij*rzij;
+      type_j = pt->types[particle];f =LJ(r2, pt->Aij_param, pt->Bij_param, type_i+ntypesGPU*type_j, nboundaryGPU+i, particle);
+      fx += f * rxij;
+      fy += f * ryij;
+      fz += f * rzij;
+    }
+    //Particles in Cell vecinopxpy
+    vecinopxpy = tex1Dfetch(texneighborpxpyGPU, icel);
+    np = tex1Dfetch(texCountParticlesInCellNonBonded,vecinopxpy);
+    for(int j=0;j<np;j++){
+      int particle = tex1Dfetch(texPartInCellNonBonded,mNeighborsGPU*j+vecinopxpy);    
+      rxij =  (rx - fetch_double(texrxboundaryGPU,particle));
+      rxij =  (rxij - int(rxij*invlxGPU + 0.5*((rxij>0)-(rxij<0)))*lxGPU);
+      ryij =  (ry - fetch_double(texryboundaryGPU,particle));
+      ryij =  (ryij - int(ryij*invlyGPU + 0.5*((ryij>0)-(ryij<0)))*lyGPU);
+      rzij =  (rz - fetch_double(texrzboundaryGPU,particle));
+      rzij =  (rzij - int(rzij*invlzGPU + 0.5*((rzij>0)-(rzij<0)))*lzGPU);
+      r2 = rxij*rxij + ryij*ryij + rzij*rzij;
+      type_j = pt->types[particle];f =LJ(r2, pt->Aij_param, pt->Bij_param, type_i+ntypesGPU*type_j, nboundaryGPU+i, particle);
+      fx += f * rxij;
+      fy += f * ryij;
+      fz += f * rzij;
+    }
+    //Particles in Cell vecinopxmy
+    vecinopxmy = tex1Dfetch(texneighborpxmyGPU, icel);
+    np = tex1Dfetch(texCountParticlesInCellNonBonded,vecinopxmy);
+    for(int j=0;j<np;j++){
+      int particle = tex1Dfetch(texPartInCellNonBonded,mNeighborsGPU*j+vecinopxmy);
+      rxij =  (rx - fetch_double(texrxboundaryGPU,particle));
+      rxij =  (rxij - int(rxij*invlxGPU + 0.5*((rxij>0)-(rxij<0)))*lxGPU);
+      ryij =  (ry - fetch_double(texryboundaryGPU,particle));
+      ryij =  (ryij - int(ryij*invlyGPU + 0.5*((ryij>0)-(ryij<0)))*lyGPU);
+      rzij =  (rz - fetch_double(texrzboundaryGPU,particle));
+      rzij =  (rzij - int(rzij*invlzGPU + 0.5*((rzij>0)-(rzij<0)))*lzGPU);
+      r2 = rxij*rxij + ryij*ryij + rzij*rzij;
+      type_j = pt->types[particle];f =LJ(r2, pt->Aij_param, pt->Bij_param, type_i+ntypesGPU*type_j, nboundaryGPU+i, particle);
+      fx += f * rxij;
+      fy += f * ryij;
+      fz += f * rzij;
+    }
+    //Particles in Cell vecinopxpz
+    vecinopxpz = tex1Dfetch(texneighborpxpzGPU, icel);
+    np = tex1Dfetch(texCountParticlesInCellNonBonded,vecinopxpz);
+    for(int j=0;j<np;j++){
+      int particle = tex1Dfetch(texPartInCellNonBonded,mNeighborsGPU*j+vecinopxpz);
+      rxij =  (rx - fetch_double(texrxboundaryGPU,particle));
+      rxij =  (rxij - int(rxij*invlxGPU + 0.5*((rxij>0)-(rxij<0)))*lxGPU);
+      ryij =  (ry - fetch_double(texryboundaryGPU,particle));
+      ryij =  (ryij - int(ryij*invlyGPU + 0.5*((ryij>0)-(ryij<0)))*lyGPU);
+      rzij =  (rz - fetch_double(texrzboundaryGPU,particle));
+      rzij =  (rzij - int(rzij*invlzGPU + 0.5*((rzij>0)-(rzij<0)))*lzGPU);
+      r2 = rxij*rxij + ryij*ryij + rzij*rzij;
+      type_j = pt->types[particle];f =LJ(r2, pt->Aij_param, pt->Bij_param, type_i+ntypesGPU*type_j, nboundaryGPU+i, particle);
+      fx += f * rxij;
+      fy += f * ryij;
+      fz += f * rzij;
+    }
+    //Particles in Cell vecinopxmz
+    vecinopxmz = tex1Dfetch(texneighborpxmzGPU, icel);
+    np = tex1Dfetch(texCountParticlesInCellNonBonded,vecinopxmz);
+    for(int j=0;j<np;j++){
+      int particle = tex1Dfetch(texPartInCellNonBonded,mNeighborsGPU*j+vecinopxmz);
+      rxij =  (rx - fetch_double(texrxboundaryGPU,particle));
+      rxij =  (rxij - int(rxij*invlxGPU + 0.5*((rxij>0)-(rxij<0)))*lxGPU);
+      ryij =  (ry - fetch_double(texryboundaryGPU,particle));
+      ryij =  (ryij - int(ryij*invlyGPU + 0.5*((ryij>0)-(ryij<0)))*lyGPU);
+      rzij =  (rz - fetch_double(texrzboundaryGPU,particle));
+      rzij =  (rzij - int(rzij*invlzGPU + 0.5*((rzij>0)-(rzij<0)))*lzGPU);
+      r2 = rxij*rxij + ryij*ryij + rzij*rzij;
+      type_j = pt->types[particle];f =LJ(r2, pt->Aij_param, pt->Bij_param, type_i+ntypesGPU*type_j, nboundaryGPU+i, particle);
+      fx += f * rxij;
+      fy += f * ryij;
+      fz += f * rzij;
+    }
+    //Particles in Cell vecinomxpy
+    vecinomxpy = tex1Dfetch(texneighbormxpyGPU, icel);
+    np = tex1Dfetch(texCountParticlesInCellNonBonded,vecinomxpy);
+    for(int j=0;j<np;j++){
+      int particle = tex1Dfetch(texPartInCellNonBonded,mNeighborsGPU*j+vecinomxpy);
+      rxij =  (rx - fetch_double(texrxboundaryGPU,particle));
+      rxij =  (rxij - int(rxij*invlxGPU + 0.5*((rxij>0)-(rxij<0)))*lxGPU);
+      ryij =  (ry - fetch_double(texryboundaryGPU,particle));
+      ryij =  (ryij - int(ryij*invlyGPU + 0.5*((ryij>0)-(ryij<0)))*lyGPU);
+      rzij =  (rz - fetch_double(texrzboundaryGPU,particle));
+      rzij =  (rzij - int(rzij*invlzGPU + 0.5*((rzij>0)-(rzij<0)))*lzGPU);
+      r2 = rxij*rxij + ryij*ryij + rzij*rzij;
+      type_j = pt->types[particle];f =LJ(r2, pt->Aij_param, pt->Bij_param, type_i+ntypesGPU*type_j, nboundaryGPU+i, particle);
+      fx += f * rxij;
+      fy += f * ryij;
+      fz += f * rzij; 
+    }
+    //Particles in Cell vecinomxmy
+    vecinomxmy = tex1Dfetch(texneighbormxmyGPU, icel);
+    np = tex1Dfetch(texCountParticlesInCellNonBonded,vecinomxmy);
+    for(int j=0;j<np;j++){
+      int particle = tex1Dfetch(texPartInCellNonBonded,mNeighborsGPU*j+vecinomxmy);
+      rxij =  (rx - fetch_double(texrxboundaryGPU,particle));
+      rxij =  (rxij - int(rxij*invlxGPU + 0.5*((rxij>0)-(rxij<0)))*lxGPU);
+      ryij =  (ry - fetch_double(texryboundaryGPU,particle));
+      ryij =  (ryij - int(ryij*invlyGPU + 0.5*((ryij>0)-(ryij<0)))*lyGPU);
+      rzij =  (rz - fetch_double(texrzboundaryGPU,particle));
+      rzij =  (rzij - int(rzij*invlzGPU + 0.5*((rzij>0)-(rzij<0)))*lzGPU);
+      r2 = rxij*rxij + ryij*ryij + rzij*rzij;
+      type_j = pt->types[particle];f =LJ(r2, pt->Aij_param, pt->Bij_param, type_i+ntypesGPU*type_j, nboundaryGPU+i, particle);
+      fx += f * rxij;
+      fy += f * ryij;
+      fz += f * rzij;
+    }
+    //Particles in Cell vecinomxpz
+    vecinomxpz = tex1Dfetch(texneighbormxpzGPU, icel);
+    np = tex1Dfetch(texCountParticlesInCellNonBonded,vecinomxpz);
+    for(int j=0;j<np;j++){
+      int particle = tex1Dfetch(texPartInCellNonBonded,mNeighborsGPU*j+vecinomxpz);
+      rxij =  (rx - fetch_double(texrxboundaryGPU,particle));
+      rxij =  (rxij - int(rxij*invlxGPU + 0.5*((rxij>0)-(rxij<0)))*lxGPU);
+      ryij =  (ry - fetch_double(texryboundaryGPU,particle));
+      ryij =  (ryij - int(ryij*invlyGPU + 0.5*((ryij>0)-(ryij<0)))*lyGPU);
+      rzij =  (rz - fetch_double(texrzboundaryGPU,particle));
+      rzij =  (rzij - int(rzij*invlzGPU + 0.5*((rzij>0)-(rzij<0)))*lzGPU);
+      r2 = rxij*rxij + ryij*ryij + rzij*rzij;
+      type_j = pt->types[particle];f =LJ(r2, pt->Aij_param, pt->Bij_param, type_i+ntypesGPU*type_j, nboundaryGPU+i, particle);
+      fx += f * rxij;
+      fy += f * ryij;
+      fz += f * rzij;
+    }
+    //Particles in Cell vecinomxmz
+    vecinomxmz = tex1Dfetch(texneighbormxmzGPU, icel);
+    np = tex1Dfetch(texCountParticlesInCellNonBonded,vecinomxmz);
+    for(int j=0;j<np;j++){
+      int particle = tex1Dfetch(texPartInCellNonBonded,mNeighborsGPU*j+vecinomxmz);
+      rxij =  (rx - fetch_double(texrxboundaryGPU,particle));
+      rxij =  (rxij - int(rxij*invlxGPU + 0.5*((rxij>0)-(rxij<0)))*lxGPU);
+      ryij =  (ry - fetch_double(texryboundaryGPU,particle));
+      ryij =  (ryij - int(ryij*invlyGPU + 0.5*((ryij>0)-(ryij<0)))*lyGPU);
+      rzij =  (rz - fetch_double(texrzboundaryGPU,particle));
+      rzij =  (rzij - int(rzij*invlzGPU + 0.5*((rzij>0)-(rzij<0)))*lzGPU);
+      r2 = rxij*rxij + ryij*ryij + rzij*rzij;
+      type_j = pt->types[particle];f =LJ(r2, pt->Aij_param, pt->Bij_param, type_i+ntypesGPU*type_j, nboundaryGPU+i, particle);
+      fx += f * rxij;
+      fy += f * ryij;
+      fz += f * rzij;
+    }
+    //Particles in Cell vecinopypz
+    vecinopypz = tex1Dfetch(texneighborpypzGPU, icel);
+    np = tex1Dfetch(texCountParticlesInCellNonBonded,vecinopypz);
+    for(int j=0;j<np;j++){
+      int particle = tex1Dfetch(texPartInCellNonBonded,mNeighborsGPU*j+vecinopypz);
+      rxij =  (rx - fetch_double(texrxboundaryGPU,particle));
+      rxij =  (rxij - int(rxij*invlxGPU + 0.5*((rxij>0)-(rxij<0)))*lxGPU);
+      ryij =  (ry - fetch_double(texryboundaryGPU,particle));
+      ryij =  (ryij - int(ryij*invlyGPU + 0.5*((ryij>0)-(ryij<0)))*lyGPU);
+      rzij =  (rz - fetch_double(texrzboundaryGPU,particle));
+      rzij =  (rzij - int(rzij*invlzGPU + 0.5*((rzij>0)-(rzij<0)))*lzGPU);
+      r2 = rxij*rxij + ryij*ryij + rzij*rzij;
+      type_j = pt->types[particle];f =LJ(r2, pt->Aij_param, pt->Bij_param, type_i+ntypesGPU*type_j, nboundaryGPU+i, particle);
+      fx += f * rxij;
+      fy += f * ryij;
+      fz += f * rzij;
+    }
+    //Particles in Cell vecinopymz
+    vecinopymz = tex1Dfetch(texneighborpymzGPU, icel);
+    np = tex1Dfetch(texCountParticlesInCellNonBonded,vecinopymz);
+    for(int j=0;j<np;j++){
+      int particle = tex1Dfetch(texPartInCellNonBonded,mNeighborsGPU*j+vecinopymz);
+      rxij =  (rx - fetch_double(texrxboundaryGPU,particle));
+      rxij =  (rxij - int(rxij*invlxGPU + 0.5*((rxij>0)-(rxij<0)))*lxGPU);
+      ryij =  (ry - fetch_double(texryboundaryGPU,particle));
+      ryij =  (ryij - int(ryij*invlyGPU + 0.5*((ryij>0)-(ryij<0)))*lyGPU);
+      rzij =  (rz - fetch_double(texrzboundaryGPU,particle));
+      rzij =  (rzij - int(rzij*invlzGPU + 0.5*((rzij>0)-(rzij<0)))*lzGPU);
+      r2 = rxij*rxij + ryij*ryij + rzij*rzij;
+      type_j = pt->types[particle];f =LJ(r2, pt->Aij_param, pt->Bij_param, type_i+ntypesGPU*type_j, nboundaryGPU+i, particle);
+      fx += f * rxij;
+      fy += f * ryij;
+      fz += f * rzij;
+    }
+    //Particles in Cell vecinomypz
+    vecinomypz = tex1Dfetch(texneighbormypzGPU, icel);
+    np = tex1Dfetch(texCountParticlesInCellNonBonded,vecinomypz);
+    for(int j=0;j<np;j++){
+      int particle = tex1Dfetch(texPartInCellNonBonded,mNeighborsGPU*j+vecinomypz);
+      rxij =  (rx - fetch_double(texrxboundaryGPU,particle));
+      rxij =  (rxij - int(rxij*invlxGPU + 0.5*((rxij>0)-(rxij<0)))*lxGPU);
+      ryij =  (ry - fetch_double(texryboundaryGPU,particle));
+      ryij =  (ryij - int(ryij*invlyGPU + 0.5*((ryij>0)-(ryij<0)))*lyGPU);
+      rzij =  (rz - fetch_double(texrzboundaryGPU,particle));
+      rzij =  (rzij - int(rzij*invlzGPU + 0.5*((rzij>0)-(rzij<0)))*lzGPU);
+      r2 = rxij*rxij + ryij*ryij + rzij*rzij;
+      type_j = pt->types[particle];f =LJ(r2, pt->Aij_param, pt->Bij_param, type_i+ntypesGPU*type_j, nboundaryGPU+i, particle);
+      fx += f * rxij;
+      fy += f * ryij;
+      fz += f * rzij;
+    }
+    //Particles in Cell vecinomymz
+    vecinomymz = tex1Dfetch(texneighbormymzGPU, icel);
+    np = tex1Dfetch(texCountParticlesInCellNonBonded,vecinomymz);
+    for(int j=0;j<np;j++){
+      int particle = tex1Dfetch(texPartInCellNonBonded,mNeighborsGPU*j+vecinomymz);
+      rxij =  (rx - fetch_double(texrxboundaryGPU,particle));
+      rxij =  (rxij - int(rxij*invlxGPU + 0.5*((rxij>0)-(rxij<0)))*lxGPU);
+      ryij =  (ry - fetch_double(texryboundaryGPU,particle));
+      ryij =  (ryij - int(ryij*invlyGPU + 0.5*((ryij>0)-(ryij<0)))*lyGPU);
+      rzij =  (rz - fetch_double(texrzboundaryGPU,particle));
+      rzij =  (rzij - int(rzij*invlzGPU + 0.5*((rzij>0)-(rzij<0)))*lzGPU);
+      r2 = rxij*rxij + ryij*ryij + rzij*rzij;
+      type_j = pt->types[particle];f =LJ(r2, pt->Aij_param, pt->Bij_param, type_i+ntypesGPU*type_j, nboundaryGPU+i, particle);
+      fx += f * rxij;
+      fy += f * ryij;
+      fz += f * rzij;
+    }
+    //Particles in Cell vecinopxpypz
+    vecinopxpypz = tex1Dfetch(texneighborpxpypzGPU, icel);
+    np = tex1Dfetch(texCountParticlesInCellNonBonded,vecinopxpypz);
+    for(int j=0;j<np;j++){
+      int particle = tex1Dfetch(texPartInCellNonBonded,mNeighborsGPU*j+vecinopxpypz);
+      rxij =  (rx - fetch_double(texrxboundaryGPU,particle));
+      rxij =  (rxij - int(rxij*invlxGPU + 0.5*((rxij>0)-(rxij<0)))*lxGPU);
+      ryij =  (ry - fetch_double(texryboundaryGPU,particle));
+      ryij =  (ryij - int(ryij*invlyGPU + 0.5*((ryij>0)-(ryij<0)))*lyGPU);
+      rzij =  (rz - fetch_double(texrzboundaryGPU,particle));
+      rzij =  (rzij - int(rzij*invlzGPU + 0.5*((rzij>0)-(rzij<0)))*lzGPU);
+      r2 = rxij*rxij + ryij*ryij + rzij*rzij;
+      type_j = pt->types[particle];f =LJ(r2, pt->Aij_param, pt->Bij_param, type_i+ntypesGPU*type_j, nboundaryGPU+i, particle);
+      fx += f * rxij;
+      fy += f * ryij;
+      fz += f * rzij;
+    }
+    //Particles in Cell vecinopxpymz
+    vecinopxpymz = tex1Dfetch(texneighborpxpymzGPU, icel);
+    np = tex1Dfetch(texCountParticlesInCellNonBonded,vecinopxpymz);
+    for(int j=0;j<np;j++){
+      int particle = tex1Dfetch(texPartInCellNonBonded,mNeighborsGPU*j+vecinopxpymz);
+      rxij =  (rx - fetch_double(texrxboundaryGPU,particle));
+      rxij =  (rxij - int(rxij*invlxGPU + 0.5*((rxij>0)-(rxij<0)))*lxGPU);
+      ryij =  (ry - fetch_double(texryboundaryGPU,particle));
+      ryij =  (ryij - int(ryij*invlyGPU + 0.5*((ryij>0)-(ryij<0)))*lyGPU);
+      rzij =  (rz - fetch_double(texrzboundaryGPU,particle));
+      rzij =  (rzij - int(rzij*invlzGPU + 0.5*((rzij>0)-(rzij<0)))*lzGPU);
+      r2 = rxij*rxij + ryij*ryij + rzij*rzij;
+      type_j = pt->types[particle];f =LJ(r2, pt->Aij_param, pt->Bij_param, type_i+ntypesGPU*type_j, nboundaryGPU+i, particle);
+      fx += f * rxij;
+      fy += f * ryij;
+      fz += f * rzij;
+    }
+    //Particles in Cell vecinopxmypz
+    vecinopxmypz = tex1Dfetch(texneighborpxmypzGPU, icel);
+    np = tex1Dfetch(texCountParticlesInCellNonBonded,vecinopxmypz);
+    for(int j=0;j<np;j++){
+      int particle = tex1Dfetch(texPartInCellNonBonded,mNeighborsGPU*j+vecinopxmypz);
+      rxij =  (rx - fetch_double(texrxboundaryGPU,particle));
+      rxij =  (rxij - int(rxij*invlxGPU + 0.5*((rxij>0)-(rxij<0)))*lxGPU);
+      ryij =  (ry - fetch_double(texryboundaryGPU,particle));
+      ryij =  (ryij - int(ryij*invlyGPU + 0.5*((ryij>0)-(ryij<0)))*lyGPU);
+      rzij =  (rz - fetch_double(texrzboundaryGPU,particle));
+      rzij =  (rzij - int(rzij*invlzGPU + 0.5*((rzij>0)-(rzij<0)))*lzGPU);
+      r2 = rxij*rxij + ryij*ryij + rzij*rzij;
+      type_j = pt->types[particle];f =LJ(r2, pt->Aij_param, pt->Bij_param, type_i+ntypesGPU*type_j, nboundaryGPU+i, particle);
+      fx += f * rxij;
+      fy += f * ryij;
+      fz += f * rzij;
+    }
+    //Particles in Cell vecinopxmymz
+    vecinopxmymz = tex1Dfetch(texneighborpxmymzGPU, icel);
+    np = tex1Dfetch(texCountParticlesInCellNonBonded,vecinopxmymz);
+    for(int j=0;j<np;j++){
+      int particle = tex1Dfetch(texPartInCellNonBonded,mNeighborsGPU*j+vecinopxmymz);
+      rxij =  (rx - fetch_double(texrxboundaryGPU,particle));
+      rxij =  (rxij - int(rxij*invlxGPU + 0.5*((rxij>0)-(rxij<0)))*lxGPU);
+      ryij =  (ry - fetch_double(texryboundaryGPU,particle));
+      ryij =  (ryij - int(ryij*invlyGPU + 0.5*((ryij>0)-(ryij<0)))*lyGPU);
+      rzij =  (rz - fetch_double(texrzboundaryGPU,particle));
+      rzij =  (rzij - int(rzij*invlzGPU + 0.5*((rzij>0)-(rzij<0)))*lzGPU);
+      r2 = rxij*rxij + ryij*ryij + rzij*rzij;
+      type_j = pt->types[particle];f =LJ(r2, pt->Aij_param, pt->Bij_param, type_i+ntypesGPU*type_j, nboundaryGPU+i, particle);
+      fx += f * rxij;
+      fy += f * ryij;
+      fz += f * rzij;
+    }
+    //Particles in Cell vecinomxpypz
+    vecinomxpypz = tex1Dfetch(texneighbormxpypzGPU, icel);
+    np = tex1Dfetch(texCountParticlesInCellNonBonded,vecinomxpypz);
+    for(int j=0;j<np;j++){
+      int particle = tex1Dfetch(texPartInCellNonBonded,mNeighborsGPU*j+vecinomxpypz);
+      rxij =  (rx - fetch_double(texrxboundaryGPU,particle));
+      rxij =  (rxij - int(rxij*invlxGPU + 0.5*((rxij>0)-(rxij<0)))*lxGPU);
+      ryij =  (ry - fetch_double(texryboundaryGPU,particle));
+      ryij =  (ryij - int(ryij*invlyGPU + 0.5*((ryij>0)-(ryij<0)))*lyGPU);
+      rzij =  (rz - fetch_double(texrzboundaryGPU,particle));
+      rzij =  (rzij - int(rzij*invlzGPU + 0.5*((rzij>0)-(rzij<0)))*lzGPU);
+      r2 = rxij*rxij + ryij*ryij + rzij*rzij;
+      type_j = pt->types[particle];f =LJ(r2, pt->Aij_param, pt->Bij_param, type_i+ntypesGPU*type_j, nboundaryGPU+i, particle);
+      fx += f * rxij;
+      fy += f * ryij;
+      fz += f * rzij;
+    }
+    //Particles in Cell vecinomxpymz
+    vecinomxpymz = tex1Dfetch(texneighbormxpymzGPU, icel);
+    np = tex1Dfetch(texCountParticlesInCellNonBonded,vecinomxpymz);
+    for(int j=0;j<np;j++){
+      int particle = tex1Dfetch(texPartInCellNonBonded,mNeighborsGPU*j+vecinomxpymz);
+      rxij =  (rx - fetch_double(texrxboundaryGPU,particle));
+      rxij =  (rxij - int(rxij*invlxGPU + 0.5*((rxij>0)-(rxij<0)))*lxGPU);
+      ryij =  (ry - fetch_double(texryboundaryGPU,particle));
+      ryij =  (ryij - int(ryij*invlyGPU + 0.5*((ryij>0)-(ryij<0)))*lyGPU);
+      rzij =  (rz - fetch_double(texrzboundaryGPU,particle));
+      rzij =  (rzij - int(rzij*invlzGPU + 0.5*((rzij>0)-(rzij<0)))*lzGPU);
+      r2 = rxij*rxij + ryij*ryij + rzij*rzij;
+      type_j = pt->types[particle];f =LJ(r2, pt->Aij_param, pt->Bij_param, type_i+ntypesGPU*type_j, nboundaryGPU+i, particle);
+      fx += f * rxij;
+      fy += f * ryij;
+      fz += f * rzij;
+    }
+    //Particles in Cell vecinomxmypz
+    vecinomxmypz = tex1Dfetch(texneighbormxmypzGPU, icel);
+    np = tex1Dfetch(texCountParticlesInCellNonBonded,vecinomxmypz);
+    for(int j=0;j<np;j++){
+      int particle = tex1Dfetch(texPartInCellNonBonded,mNeighborsGPU*j+vecinomxmypz);
+      rxij =  (rx - fetch_double(texrxboundaryGPU,particle));
+      rxij =  (rxij - int(rxij*invlxGPU + 0.5*((rxij>0)-(rxij<0)))*lxGPU);
+      ryij =  (ry - fetch_double(texryboundaryGPU,particle));
+      ryij =  (ryij - int(ryij*invlyGPU + 0.5*((ryij>0)-(ryij<0)))*lyGPU);
+      rzij =  (rz - fetch_double(texrzboundaryGPU,particle));
+      rzij =  (rzij - int(rzij*invlzGPU + 0.5*((rzij>0)-(rzij<0)))*lzGPU);
+      r2 = rxij*rxij + ryij*ryij + rzij*rzij;
+      type_j = pt->types[particle];f =LJ(r2, pt->Aij_param, pt->Bij_param, type_i+ntypesGPU*type_j, nboundaryGPU+i, particle);
+      fx += f * rxij;
+      fy += f * ryij;
+      fz += f * rzij;
+    }
+    //Particles in Cell vecinomxmymz
+    vecinomxmymz = tex1Dfetch(texneighbormxmymzGPU, icel);
+    np = tex1Dfetch(texCountParticlesInCellNonBonded,vecinomxmymz);
+    for(int j=0;j<np;j++){
+      int particle = tex1Dfetch(texPartInCellNonBonded,mNeighborsGPU*j+vecinomxmymz);
+      rxij =  (rx - fetch_double(texrxboundaryGPU,particle));
+      rxij =  (rxij - int(rxij*invlxGPU + 0.5*((rxij>0)-(rxij<0)))*lxGPU);
+      ryij =  (ry - fetch_double(texryboundaryGPU,particle));
+      ryij =  (ryij - int(ryij*invlyGPU + 0.5*((ryij>0)-(ryij<0)))*lyGPU);
+      rzij =  (rz - fetch_double(texrzboundaryGPU,particle));
+      rzij =  (rzij - int(rzij*invlzGPU + 0.5*((rzij>0)-(rzij<0)))*lzGPU);
+      r2 = rxij*rxij + ryij*ryij + rzij*rzij;
+      type_j = pt->types[particle];f =LJ(r2, pt->Aij_param, pt->Bij_param, type_i+ntypesGPU*type_j, nboundaryGPU+i, particle);
+      fx += f * rxij;
+      fy += f * ryij;
+      fz += f * rzij;
+    }
+    
+  }
+  
+  double dlx, dlxp, dlxm;
+  double dly, dlyp, dlym;
+  double dlz, dlzp, dlzm;
+  int icelx, icely, icelz;
+
+  {
+    int mxmy = mxGPU * mytGPU;
+    r = rx;
+    r = r - (int(r*invlxGPU + 0.5*((r>0)-(r<0)))) * lxGPU;
+    int jx   = int(r * invdxGPU + 0.5*mxGPU) % mxGPU;
+    r = rx - 0.5*dxGPU;
+    r = r - (int(r*invlxGPU + 0.5*((r>0)-(r<0)))) * lxGPU;
+    int jxdx = int(r * invdxGPU + 0.5*mxGPU) % mxGPU;
+
+    r = ry;
+    r = r - (int(r*invlyGPU + 0.5*((r>0)-(r<0)))) * lyGPU;
+    int jy   = int(r * invdyGPU + 0.5*mytGPU) % mytGPU;
+    r = ry - 0.5*dyGPU;
+    r = r - (int(r*invlyGPU + 0.5*((r>0)-(r<0)))) * lyGPU;
+    int jydy = int(r * invdyGPU + 0.5*mytGPU) % mytGPU;
+
+    r = rz;
+    r = r - (int(r*invlzGPU + 0.5*((r>0)-(r<0)))) * lzGPU;
+    int jz   = int(r * invdzGPU + 0.5*mzGPU) % mzGPU;
+    r = rz - 0.5*dzGPU;
+    r = r - (int(r*invlzGPU + 0.5*((r>0)-(r<0)))) * lzGPU;
+    int jzdz = int(r * invdzGPU + 0.5*mzGPU) % mzGPU;
+
+    icelx  = jxdx;
+    icelx += jy * mxGPU;
+    icelx += jz * mxmy;
+
+    icely  = jx;
+    icely += jydy * mxGPU;
+    icely += jz * mxmy;
+
+    icelz  = jx;
+    icelz += jy * mxGPU;
+    icelz += jzdz * mxmy;
+  }
+
+  np = atomicAdd(&pc->countparticlesincellX[icelx],1);
+  if(np >= maxNumberPartInCellGPU){
+    errorKernel[0]=1;
+    errorKernel[1]=maxNumberPartInCellGPU;
+    return;
+  }
+  pc->partincellX[ncellstGPU*np+icelx] = nboundaryGPU+i;
+  np = atomicAdd(&pc->countparticlesincellY[icely],1);
+  if(np >= maxNumberPartInCellGPU){
+    errorKernel[0]=1;
+    errorKernel[2]=np;
+    return;
+  }
+  pc->partincellY[ncellstGPU*np+icely] = nboundaryGPU+i;
+  np = atomicAdd(&pc->countparticlesincellZ[icelz],1);
+  if(np >= maxNumberPartInCellGPU){
+    errorKernel[0]=1;
+    errorKernel[3]=np;
+    return;
+  }
+  pc->partincellZ[ncellstGPU*np+icelz] = nboundaryGPU+i;
+
+  double auxdx = invdxGPU/1.5;
+  double auxdy = invdyGPU/1.5;
+  double auxdz = invdzGPU/1.5;
+
+  //FORCE IN THE X DIRECTION
+  vecino0 = tex1Dfetch(texvecino0GPU, icelx);
+  vecino1 = tex1Dfetch(texvecino1GPU, icelx);
+  vecino2 = tex1Dfetch(texvecino2GPU, icelx);
+  vecino3 = tex1Dfetch(texvecino3GPU, icelx);
+  vecino4 = tex1Dfetch(texvecino4GPU, icelx);
+  vecino5 = tex1Dfetch(texvecino5GPU, icelx);
+  vecinopxpy = tex1Dfetch(texvecinopxpyGPU, icelx);
+  vecinopxmy = tex1Dfetch(texvecinopxmyGPU, icelx);
+  vecinopxpz = tex1Dfetch(texvecinopxpzGPU, icelx);
+  vecinopxmz = tex1Dfetch(texvecinopxmzGPU, icelx);
+  vecinomxpy = tex1Dfetch(texvecinomxpyGPU, icelx);
+  vecinomxmy = tex1Dfetch(texvecinomxmyGPU, icelx);
+  vecinomxpz = tex1Dfetch(texvecinomxpzGPU, icelx);
+  vecinomxmz = tex1Dfetch(texvecinomxmzGPU, icelx);
+  vecinopypz = tex1Dfetch(texvecinopypzGPU, icelx);
+  vecinopymz = tex1Dfetch(texvecinopymzGPU, icelx);
+  vecinomypz = tex1Dfetch(texvecinomypzGPU, icelx);
+  vecinomymz = tex1Dfetch(texvecinomymzGPU, icelx);
+  vecinopxpypz = tex1Dfetch(texvecinopxpypzGPU, icelx);
+  vecinopxpymz = tex1Dfetch(texvecinopxpymzGPU, icelx);
+  vecinopxmypz = tex1Dfetch(texvecinopxmypzGPU, icelx);
+  vecinopxmymz = tex1Dfetch(texvecinopxmymzGPU, icelx);
+  vecinomxpypz = tex1Dfetch(texvecinomxpypzGPU, icelx);
+  vecinomxpymz = tex1Dfetch(texvecinomxpymzGPU, icelx);
+  vecinomxmypz = tex1Dfetch(texvecinomxmypzGPU, icelx);
+  vecinomxmymz = tex1Dfetch(texvecinomxmymzGPU, icelx);
+  int vecinopxpxpypz = tex1Dfetch(texvecino3GPU, vecinopxpypz);
+  int vecinopxpxpymz = tex1Dfetch(texvecino3GPU, vecinopxpymz);
+  int vecinopxpxmypz = tex1Dfetch(texvecino3GPU, vecinopxmypz);
+  int vecinopxpxmymz = tex1Dfetch(texvecino3GPU, vecinopxmymz);
+  int vecinopxpx     = tex1Dfetch(texvecino3GPU, vecino3);
+  int vecinopxpxpy   = tex1Dfetch(texvecino3GPU, vecinopxpy);
+  int vecinopxpxmy   = tex1Dfetch(texvecino3GPU, vecinopxmy);
+  int vecinopxpxpz   = tex1Dfetch(texvecino3GPU, vecinopxpz);
+  int vecinopxpxmz   = tex1Dfetch(texvecino3GPU, vecinopxmz);
+
+  //double dlxS, dlxpS, dlxmS;
+  //double dlyS, dlypS, dlymS;
+  //double dlzS, dlzpS, dlzmS;
+
+  r =  (rx - rxcellGPU[icelx] - dxGPU*0.5);
+  rp = (rx - rxcellGPU[vecino3] - dxGPU*0.5);
+  rm = (rx - rxcellGPU[vecino2] - dxGPU*0.5);
+  r =  auxdx * (r - int(r*invlxGPU + 0.5*((r>0)-(r<0)))*lxGPU);
+  rm = auxdx * (rm - int(rm*invlxGPU + 0.5*((rm>0)-(rm<0)))*lxGPU);
+  rp = auxdx * (rp - int(rp*invlxGPU + 0.5*((rp>0)-(rp<0)))*lxGPU);
+  //dlx  = tex1D(texDelta, fabs(r));
+  //dlxp = tex1D(texDelta, fabs(rp));
+  //dlxm = tex1D(texDelta, fabs(rm));
+  dlx = delta(1.5*r);
+  dlxp = delta(1.5*rp);
+  dlxm = delta(1.5*rm);
+  //dlxS = functionDeltaDerived(1.5*r);
+  //dlxpS = functionDeltaDerived(1.5*rp);
+  //dlxmS = functionDeltaDerived(1.5*rm);
+                              
+  r =  (ry - rycellGPU[icelx]);
+  rp = (ry - rycellGPU[vecino4]);
+  rm = (ry - rycellGPU[vecino1]); 
+  r =  auxdy * (r - int(r*invlyGPU + 0.5*((r>0)-(r<0)))*lyGPU);
+  rp = auxdy * (rp - int(rp*invlyGPU + 0.5*((rp>0)-(rp<0)))*lyGPU);
+  rm = auxdy * (rm - int(rm*invlyGPU + 0.5*((rm>0)-(rm<0)))*lyGPU);
+  //dly = tex1D(texDelta, fabs(r));
+  //dlyp = tex1D(texDelta, fabs(rp));
+  //dlym = tex1D(texDelta, fabs(rm));
+  dly = delta(1.5*r);
+  dlyp = delta(1.5*rp);
+  dlym = delta(1.5*rm);
+  //dlyS = functionDeltaDerived(1.5*r);
+  //dlypS = functionDeltaDerived(1.5*rp);
+  //dlymS = functionDeltaDerived(1.5*rm);
+
+  r =  (rz - rzcellGPU[icelx]);
+  rp = (rz - rzcellGPU[vecino5]);
+  rm = (rz - rzcellGPU[vecino0]);
+  r = auxdz * (r - int(r*invlzGPU + 0.5*((r>0)-(r<0)))*lzGPU);
+  rp = auxdz * (rp - int(rp*invlzGPU + 0.5*((rp>0)-(rp<0)))*lzGPU);
+  rm = auxdz * (rm - int(rm*invlzGPU + 0.5*((rm>0)-(rm<0)))*lzGPU);
+  //dlz = tex1D(texDelta, fabs(r));
+  //dlzp = tex1D(texDelta, fabs(rp));
+  //dlzm = tex1D(texDelta, fabs(rm));
+  dlz = delta(1.5*r);
+  dlzp = delta(1.5*rp);
+  dlzm = delta(1.5*rm);
+  //dlzS = functionDeltaDerived(1.5*r);
+  //dlzpS = functionDeltaDerived(1.5*rp);
+  //dlzmS = functionDeltaDerived(1.5*rm);
+
+    
+  int offset = nboundaryGPU;
+  fxboundaryGPU[offset+i] = -dlxp * dlyp * dlzp * fx;
+  offset += nboundaryGPU+npGPU;//1
+  fxboundaryGPU[offset+i] = -dlxp * dlyp * dlz  * fx;
+  offset += nboundaryGPU+npGPU;//2
+  fxboundaryGPU[offset+i] = -dlxp * dlyp * dlzm * fx;
+  offset += nboundaryGPU+npGPU;//3
+  fxboundaryGPU[offset+i] = -dlxp * dly  * dlzp * fx;
+  offset += nboundaryGPU+npGPU;//4
+  fxboundaryGPU[offset+i] = -dlxp * dly  * dlz  * fx;
+  offset += nboundaryGPU+npGPU;//5
+  fxboundaryGPU[offset+i] = -dlxp * dly  * dlzm * fx;
+  offset += nboundaryGPU+npGPU;//6
+  fxboundaryGPU[offset+i] = -dlxp * dlym * dlzp * fx;
+  offset += nboundaryGPU+npGPU;//7
+  fxboundaryGPU[offset+i] = -dlxp * dlym * dlz  * fx;
+  offset += nboundaryGPU+npGPU;//8
+  fxboundaryGPU[offset+i] = -dlxp * dlym * dlzm * fx;
+  offset += nboundaryGPU+npGPU;//9
+  fxboundaryGPU[offset+i] = -dlx  * dlyp * dlzp * fx;
+  offset += nboundaryGPU+npGPU;//10
+  fxboundaryGPU[offset+i] = -dlx  * dlyp * dlz  * fx;
+  offset += nboundaryGPU+npGPU;//11
+  fxboundaryGPU[offset+i] = -dlx  * dlyp * dlzm * fx;
+  offset += nboundaryGPU+npGPU;//12
+  fxboundaryGPU[offset+i] = -dlx  * dly  * dlzp * fx;
+  offset += nboundaryGPU+npGPU;//13
+  fxboundaryGPU[offset+i] = -dlx  * dly  * dlz  * fx;
+  offset += nboundaryGPU+npGPU;//14
+  fxboundaryGPU[offset+i] = -dlx  * dly  * dlzm * fx;
+  offset += nboundaryGPU+npGPU;//15
+  fxboundaryGPU[offset+i] = -dlx  * dlym * dlzp * fx;
+  offset += nboundaryGPU+npGPU;//16
+  fxboundaryGPU[offset+i] = -dlx  * dlym * dlz  * fx;
+  offset += nboundaryGPU+npGPU;//17
+  fxboundaryGPU[offset+i] = -dlx  * dlym * dlzm * fx;
+  offset += nboundaryGPU+npGPU;//18
+  fxboundaryGPU[offset+i] = -dlxm * dlyp * dlzp * fx;
+  offset += nboundaryGPU+npGPU;//19
+  fxboundaryGPU[offset+i] = -dlxm * dlyp * dlz  * fx;
+  offset += nboundaryGPU+npGPU;//20
+  fxboundaryGPU[offset+i] = -dlxm * dlyp * dlzm * fx;
+  offset += nboundaryGPU+npGPU;//21
+  fxboundaryGPU[offset+i] = -dlxm * dly  * dlzp * fx;
+  offset += nboundaryGPU+npGPU;//22
+  fxboundaryGPU[offset+i] = -dlxm * dly  * dlz  * fx;
+  offset += nboundaryGPU+npGPU;//23
+  fxboundaryGPU[offset+i] = -dlxm * dly  * dlzm * fx;
+  offset += nboundaryGPU+npGPU;//24
+  fxboundaryGPU[offset+i] = -dlxm * dlym * dlzp * fx;
+  offset += nboundaryGPU+npGPU;//25
+  fxboundaryGPU[offset+i] = -dlxm * dlym * dlz  * fx;
+  offset += nboundaryGPU+npGPU;//26
+  fxboundaryGPU[offset+i] = -dlxm * dlym * dlzm * fx;
+  
+  
+  //FORCE IN THE Y DIRECTION
+  vecino0 = tex1Dfetch(texvecino0GPU, icely);
+  vecino1 = tex1Dfetch(texvecino1GPU, icely);
+  vecino2 = tex1Dfetch(texvecino2GPU, icely);
+  vecino3 = tex1Dfetch(texvecino3GPU, icely);
+  vecino4 = tex1Dfetch(texvecino4GPU, icely);
+  vecino5 = tex1Dfetch(texvecino5GPU, icely);
+  vecinopxpy = tex1Dfetch(texvecinopxpyGPU, icely);
+  vecinopxmy = tex1Dfetch(texvecinopxmyGPU, icely);
+  vecinopxpz = tex1Dfetch(texvecinopxpzGPU, icely);
+  vecinopxmz = tex1Dfetch(texvecinopxmzGPU, icely);
+  vecinomxpy = tex1Dfetch(texvecinomxpyGPU, icely);
+  vecinomxmy = tex1Dfetch(texvecinomxmyGPU, icely);
+  vecinomxpz = tex1Dfetch(texvecinomxpzGPU, icely);
+  vecinomxmz = tex1Dfetch(texvecinomxmzGPU, icely);
+  vecinopypz = tex1Dfetch(texvecinopypzGPU, icely);
+  vecinopymz = tex1Dfetch(texvecinopymzGPU, icely);
+  vecinomypz = tex1Dfetch(texvecinomypzGPU, icely);
+  vecinomymz = tex1Dfetch(texvecinomymzGPU, icely);
+  vecinopxpypz = tex1Dfetch(texvecinopxpypzGPU, icely);
+  vecinopxpymz = tex1Dfetch(texvecinopxpymzGPU, icely);
+  vecinopxmypz = tex1Dfetch(texvecinopxmypzGPU, icely);
+  vecinopxmymz = tex1Dfetch(texvecinopxmymzGPU, icely);
+  vecinomxpypz = tex1Dfetch(texvecinomxpypzGPU, icely);
+  vecinomxpymz = tex1Dfetch(texvecinomxpymzGPU, icely);
+  vecinomxmypz = tex1Dfetch(texvecinomxmypzGPU, icely);
+  vecinomxmymz = tex1Dfetch(texvecinomxmymzGPU, icely);  
+  //DEFINE MORE NEIGHBORS
+  int vecinopymxpymz = tex1Dfetch(texvecino4GPU, vecinomxpymz);
+  int vecinopymxpy   = tex1Dfetch(texvecino4GPU, vecinomxpy);
+  int vecinopymxpypz = tex1Dfetch(texvecino4GPU, vecinomxpypz);
+  int vecinopypymz   = tex1Dfetch(texvecino4GPU, vecinopymz);
+  int vecinopypy     = tex1Dfetch(texvecino4GPU, vecino4);
+  int vecinopypypz   = tex1Dfetch(texvecino4GPU, vecinopypz);
+  int vecinopypxpymz = tex1Dfetch(texvecino4GPU, vecinopxpymz);
+  int vecinopypxpy   = tex1Dfetch(texvecino4GPU, vecinopxpy);
+  int vecinopypxpypz = tex1Dfetch(texvecino4GPU, vecinopxpypz);
+
+  r =  (rx - rxcellGPU[icely]);
+  rp = (rx - rxcellGPU[vecino3]);
+  rm = (rx - rxcellGPU[vecino2]);
+  r =  auxdx * (r - int(r*invlxGPU + 0.5*((r>0)-(r<0)))*lxGPU);
+  rm = auxdx * (rm - int(rm*invlxGPU + 0.5*((rm>0)-(rm<0)))*lxGPU);
+  rp = auxdx * (rp - int(rp*invlxGPU + 0.5*((rp>0)-(rp<0)))*lxGPU);
+  //dlx = tex1D(texDelta, fabs(r));
+  //dlxp = tex1D(texDelta, fabs(rp));
+  //dlxm = tex1D(texDelta, fabs(rm));
+  dlx = delta(1.5*r);
+  dlxp = delta(1.5*rp);
+  dlxm = delta(1.5*rm);
+  //dlxS = functionDeltaDerived(1.5*r);
+  //dlxpS = functionDeltaDerived(1.5*rp);
+  //dlxmS = functionDeltaDerived(1.5*rm);
+
+  r =  (ry - rycellGPU[icely] - dyGPU*0.5);
+  rp = (ry - rycellGPU[vecino4] - dyGPU*0.5);
+  rm = (ry - rycellGPU[vecino1] - dyGPU*0.5); 
+  r =  auxdy * (r - int(r*invlyGPU + 0.5*((r>0)-(r<0)))*lyGPU);
+  rp = auxdy * (rp - int(rp*invlyGPU + 0.5*((rp>0)-(rp<0)))*lyGPU);
+  rm = auxdy * (rm - int(rm*invlyGPU + 0.5*((rm>0)-(rm<0)))*lyGPU);
+  //dly = tex1D(texDelta, fabs(r));
+  //dlyp = tex1D(texDelta, fabs(rp));
+  //dlym = tex1D(texDelta, fabs(rm));
+  dly = delta(1.5*r);
+  dlyp = delta(1.5*rp);
+  dlym = delta(1.5*rm);
+  //dlyS = functionDeltaDerived(1.5*r);
+  //dlypS = functionDeltaDerived(1.5*rp);
+  //dlymS = functionDeltaDerived(1.5*rm);
+
+  r =  (rz - rzcellGPU[icely]);
+  rp = (rz - rzcellGPU[vecino5]);
+  rm = (rz - rzcellGPU[vecino0]);
+  r = auxdz * (r - int(r*invlzGPU + 0.5*((r>0)-(r<0)))*lzGPU);
+  rp = auxdz * (rp - int(rp*invlzGPU + 0.5*((rp>0)-(rp<0)))*lzGPU);
+  rm = auxdz * (rm - int(rm*invlzGPU + 0.5*((rm>0)-(rm<0)))*lzGPU);
+  //dlz = tex1D(texDelta, fabs(r));
+  //dlzp = tex1D(texDelta, fabs(rp));
+  //dlzm = tex1D(texDelta, fabs(rm));
+  dlz = delta(1.5*r);
+  dlzp = delta(1.5*rp);
+  dlzm = delta(1.5*rm);
+  //dlzS = functionDeltaDerived(1.5*r);
+  //dlzpS = functionDeltaDerived(1.5*rp);
+  //dlzmS = functionDeltaDerived(1.5*rm);
+
+  offset = nboundaryGPU;
+  fyboundaryGPU[offset+i] = -dlxp * dlyp * dlzp * fy;
+  offset += nboundaryGPU+npGPU;//1
+  fyboundaryGPU[offset+i] = -dlxp * dlyp * dlz  * fy;
+  offset += nboundaryGPU+npGPU;//2
+  fyboundaryGPU[offset+i] = -dlxp * dlyp * dlzm * fy;
+  offset += nboundaryGPU+npGPU;//3
+  fyboundaryGPU[offset+i] = -dlxp * dly  * dlzp * fy;
+  offset += nboundaryGPU+npGPU;//4
+  fyboundaryGPU[offset+i] = -dlxp * dly  * dlz  * fy;
+  offset += nboundaryGPU+npGPU;//5
+  fyboundaryGPU[offset+i] = -dlxp * dly  * dlzm * fy;
+  offset += nboundaryGPU+npGPU;//6
+  fyboundaryGPU[offset+i] = -dlxp * dlym * dlzp * fy;
+  offset += nboundaryGPU+npGPU;//7
+  fyboundaryGPU[offset+i] = -dlxp * dlym * dlz  * fy;
+  offset += nboundaryGPU+npGPU;//8
+  fyboundaryGPU[offset+i] = -dlxp * dlym * dlzm * fy;
+  offset += nboundaryGPU+npGPU;//9
+  fyboundaryGPU[offset+i] = -dlx  * dlyp * dlzp * fy;
+  offset += nboundaryGPU+npGPU;//10
+  fyboundaryGPU[offset+i] = -dlx  * dlyp * dlz  * fy;
+  offset += nboundaryGPU+npGPU;//11
+  fyboundaryGPU[offset+i] = -dlx  * dlyp * dlzm * fy;
+  offset += nboundaryGPU+npGPU;//12
+  fyboundaryGPU[offset+i] = -dlx  * dly  * dlzp * fy;
+  offset += nboundaryGPU+npGPU;//13
+  fyboundaryGPU[offset+i] = -dlx  * dly  * dlz  * fy;
+  offset += nboundaryGPU+npGPU;//14
+  fyboundaryGPU[offset+i] = -dlx  * dly  * dlzm * fy;
+  offset += nboundaryGPU+npGPU;//15
+  fyboundaryGPU[offset+i] = -dlx  * dlym * dlzp * fy;
+  offset += nboundaryGPU+npGPU;//16
+  fyboundaryGPU[offset+i] = -dlx  * dlym * dlz  * fy;
+  offset += nboundaryGPU+npGPU;//17
+  fyboundaryGPU[offset+i] = -dlx  * dlym * dlzm * fy;
+  offset += nboundaryGPU+npGPU;//18
+  fyboundaryGPU[offset+i] = -dlxm * dlyp * dlzp * fy;
+  offset += nboundaryGPU+npGPU;//19
+  fyboundaryGPU[offset+i] = -dlxm * dlyp * dlz  * fy;
+  offset += nboundaryGPU+npGPU;//20
+  fyboundaryGPU[offset+i] = -dlxm * dlyp * dlzm * fy;
+  offset += nboundaryGPU+npGPU;//21
+  fyboundaryGPU[offset+i] = -dlxm * dly  * dlzp * fy;
+  offset += nboundaryGPU+npGPU;//22
+  fyboundaryGPU[offset+i] = -dlxm * dly  * dlz  * fy;
+  offset += nboundaryGPU+npGPU;//23
+  fyboundaryGPU[offset+i] = -dlxm * dly  * dlzm * fy;
+  offset += nboundaryGPU+npGPU;//24
+  fyboundaryGPU[offset+i] = -dlxm * dlym * dlzp * fy;
+  offset += nboundaryGPU+npGPU;//25
+  fyboundaryGPU[offset+i] = -dlxm * dlym * dlz  * fy;
+  offset += nboundaryGPU+npGPU;//26
+  fyboundaryGPU[offset+i] = -dlxm * dlym * dlzm * fy;
+
+
+  
+  //FORCE IN THE Z DIRECTION
+  vecino0 = tex1Dfetch(texvecino0GPU, icelz);
+  vecino1 = tex1Dfetch(texvecino1GPU, icelz);
+  vecino2 = tex1Dfetch(texvecino2GPU, icelz);
+  vecino3 = tex1Dfetch(texvecino3GPU, icelz);
+  vecino4 = tex1Dfetch(texvecino4GPU, icelz);
+  vecino5 = tex1Dfetch(texvecino5GPU, icelz);
+  vecinopxpy = tex1Dfetch(texvecinopxpyGPU, icelz);
+  vecinopxmy = tex1Dfetch(texvecinopxmyGPU, icelz);
+  vecinopxpz = tex1Dfetch(texvecinopxpzGPU, icelz);
+  vecinopxmz = tex1Dfetch(texvecinopxmzGPU, icelz);
+  vecinomxpy = tex1Dfetch(texvecinomxpyGPU, icelz);
+  vecinomxmy = tex1Dfetch(texvecinomxmyGPU, icelz);
+  vecinomxpz = tex1Dfetch(texvecinomxpzGPU, icelz);
+  vecinomxmz = tex1Dfetch(texvecinomxmzGPU, icelz);
+  vecinopypz = tex1Dfetch(texvecinopypzGPU, icelz);
+  vecinopymz = tex1Dfetch(texvecinopymzGPU, icelz);
+  vecinomypz = tex1Dfetch(texvecinomypzGPU, icelz);
+  vecinomymz = tex1Dfetch(texvecinomymzGPU, icelz);
+  vecinopxpypz = tex1Dfetch(texvecinopxpypzGPU, icelz);
+  vecinopxpymz = tex1Dfetch(texvecinopxpymzGPU, icelz);
+  vecinopxmypz = tex1Dfetch(texvecinopxmypzGPU, icelz);
+  vecinopxmymz = tex1Dfetch(texvecinopxmymzGPU, icelz);
+  vecinomxpypz = tex1Dfetch(texvecinomxpypzGPU, icelz);
+  vecinomxpymz = tex1Dfetch(texvecinomxpymzGPU, icelz);
+  vecinomxmypz = tex1Dfetch(texvecinomxmypzGPU, icelz);
+  vecinomxmymz = tex1Dfetch(texvecinomxmymzGPU, icelz);  
+  //DEFINE MORE NEIGHBORS
+  int vecinopzmxmypz = tex1Dfetch(texvecino5GPU, vecinomxmypz);
+  int vecinopzmxpz   = tex1Dfetch(texvecino5GPU, vecinomxpz);
+  int vecinopzmxpypz = tex1Dfetch(texvecino5GPU, vecinomxpypz);
+  int vecinopzmypz   = tex1Dfetch(texvecino5GPU, vecinomypz);
+  int vecinopzpz     = tex1Dfetch(texvecino5GPU, vecino5);
+  int vecinopzpypz   = tex1Dfetch(texvecino5GPU, vecinopypz);
+  int vecinopzpxmypz = tex1Dfetch(texvecino5GPU, vecinopxmypz);
+  int vecinopzpxpz   = tex1Dfetch(texvecino5GPU, vecinopxpz);
+  int vecinopzpxpypz = tex1Dfetch(texvecino5GPU, vecinopxpypz);
+
+  r =  (rx - rxcellGPU[icelz]);
+  rp = (rx - rxcellGPU[vecino3]);
+  rm = (rx - rxcellGPU[vecino2]);
+  r =  auxdx * (r - int(r*invlxGPU + 0.5*((r>0)-(r<0)))*lxGPU);
+  rm = auxdx * (rm - int(rm*invlxGPU + 0.5*((rm>0)-(rm<0)))*lxGPU);
+  rp = auxdx * (rp - int(rp*invlxGPU + 0.5*((rp>0)-(rp<0)))*lxGPU);
+  //dlx = tex1D(texDelta, fabs(r));
+  //dlxp = tex1D(texDelta, fabs(rp));
+  //dlxm = tex1D(texDelta, fabs(rm));
+  dlx = delta(1.5*r);
+  dlxp = delta(1.5*rp);
+  dlxm = delta(1.5*rm);
+  //dlxS = functionDeltaDerived(1.5*r);
+  //dlxpS = functionDeltaDerived(1.5*rp);
+  //dlxmS = functionDeltaDerived(1.5*rm);
+
+  r =  (ry - rycellGPU[icelz]);
+  rp = (ry - rycellGPU[vecino4]);
+  rm = (ry - rycellGPU[vecino1]); 
+  r =  auxdy * (r - int(r*invlyGPU + 0.5*((r>0)-(r<0)))*lyGPU);
+  rp = auxdy * (rp - int(rp*invlyGPU + 0.5*((rp>0)-(rp<0)))*lyGPU);
+  rm = auxdy * (rm - int(rm*invlyGPU + 0.5*((rm>0)-(rm<0)))*lyGPU);
+  //dly = tex1D(texDelta, fabs(r));
+  //dlyp = tex1D(texDelta, fabs(rp));
+  //dlym = tex1D(texDelta, fabs(rm));
+  dly = delta(1.5*r);
+  dlyp = delta(1.5*rp);
+  dlym = delta(1.5*rm);
+  //dlyS = functionDeltaDerived(1.5*r);
+  //dlypS = functionDeltaDerived(1.5*rp);
+  //dlymS = functionDeltaDerived(1.5*rm);
+
+  r =  (rz - rzcellGPU[icelz] - dzGPU*0.5);
+  rp = (rz - rzcellGPU[vecino5] - dzGPU*0.5);
+  rm = (rz - rzcellGPU[vecino0] - dzGPU*0.5);
+  r = auxdz * (r - int(r*invlzGPU + 0.5*((r>0)-(r<0)))*lzGPU);
+  rp = auxdz * (rp - int(rp*invlzGPU + 0.5*((rp>0)-(rp<0)))*lzGPU);
+  rm = auxdz * (rm - int(rm*invlzGPU + 0.5*((rm>0)-(rm<0)))*lzGPU);
+  //dlz = tex1D(texDelta, fabs(r));
+  //dlzp = tex1D(texDelta, fabs(rp));
+  //dlzm = tex1D(texDelta, fabs(rm));
+  dlz = delta(1.5*r);
+  dlzp = delta(1.5*rp);
+  dlzm = delta(1.5*rm);
+  //dlzS = functionDeltaDerived(1.5*r);
+  //dlzpS = functionDeltaDerived(1.5*rp);
+  //dlzmS = functionDeltaDerived(1.5*rm);
+
+
+  offset = nboundaryGPU;
+  fzboundaryGPU[offset+i] = -dlxp * dlyp * dlzp * fz;
+  offset += nboundaryGPU+npGPU;//1
+  fzboundaryGPU[offset+i] = -dlxp * dlyp * dlz  * fz;
+  offset += nboundaryGPU+npGPU;//2
+  fzboundaryGPU[offset+i] = -dlxp * dlyp * dlzm * fz;
+  offset += nboundaryGPU+npGPU;//3
+  fzboundaryGPU[offset+i] = -dlxp * dly  * dlzp * fz;
+  offset += nboundaryGPU+npGPU;//4
+  fzboundaryGPU[offset+i] = -dlxp * dly  * dlz  * fz;
+  offset += nboundaryGPU+npGPU;//5
+  fzboundaryGPU[offset+i] = -dlxp * dly  * dlzm * fz;
+  offset += nboundaryGPU+npGPU;//6
+  fzboundaryGPU[offset+i] = -dlxp * dlym * dlzp * fz;
+  offset += nboundaryGPU+npGPU;//7
+  fzboundaryGPU[offset+i] = -dlxp * dlym * dlz  * fz;
+  offset += nboundaryGPU+npGPU;//8
+  fzboundaryGPU[offset+i] = -dlxp * dlym * dlzm * fz;
+  offset += nboundaryGPU+npGPU;//9
+  fzboundaryGPU[offset+i] = -dlx  * dlyp * dlzp * fz;
+  offset += nboundaryGPU+npGPU;//10
+  fzboundaryGPU[offset+i] = -dlx  * dlyp * dlz  * fz;
+  offset += nboundaryGPU+npGPU;//11
+  fzboundaryGPU[offset+i] = -dlx  * dlyp * dlzm * fz;
+  offset += nboundaryGPU+npGPU;//12
+  fzboundaryGPU[offset+i] = -dlx  * dly  * dlzp * fz;
+  offset += nboundaryGPU+npGPU;//13
+  fzboundaryGPU[offset+i] = -dlx  * dly  * dlz  * fz;
+  offset += nboundaryGPU+npGPU;//14
+  fzboundaryGPU[offset+i] = -dlx  * dly  * dlzm * fz;
+  offset += nboundaryGPU+npGPU;//15
+  fzboundaryGPU[offset+i] = -dlx  * dlym * dlzp * fz;
+  offset += nboundaryGPU+npGPU;//16
+  fzboundaryGPU[offset+i] = -dlx  * dlym * dlz  * fz;
+  offset += nboundaryGPU+npGPU;//17
+  fzboundaryGPU[offset+i] = -dlx  * dlym * dlzm * fz;
+  offset += nboundaryGPU+npGPU;//18
+  fzboundaryGPU[offset+i] = -dlxm * dlyp * dlzp * fz;
+  offset += nboundaryGPU+npGPU;//19
+  fzboundaryGPU[offset+i] = -dlxm * dlyp * dlz  * fz;
+  offset += nboundaryGPU+npGPU;//20
+  fzboundaryGPU[offset+i] = -dlxm * dlyp * dlzm * fz;
+  offset += nboundaryGPU+npGPU;//21
+  fzboundaryGPU[offset+i] = -dlxm * dly  * dlzp * fz;
+  offset += nboundaryGPU+npGPU;//22
+  fzboundaryGPU[offset+i] = -dlxm * dly  * dlz  * fz;
+  offset += nboundaryGPU+npGPU;//23
+  fzboundaryGPU[offset+i] = -dlxm * dly  * dlzm * fz;
+  offset += nboundaryGPU+npGPU;//24
+  fzboundaryGPU[offset+i] = -dlxm * dlym * dlzp * fz;
+  offset += nboundaryGPU+npGPU;//25
+  fzboundaryGPU[offset+i] = -dlxm * dlym * dlz  * fz;
+  offset += nboundaryGPU+npGPU;//26
+  fzboundaryGPU[offset+i] = -dlxm * dlym * dlzm * fz;
+  
+}
+
+
+
+
+
+
 __global__ void copyParticles(double *rx,
 			      double *ry,
 			      double *rz,

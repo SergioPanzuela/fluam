@@ -1,5 +1,5 @@
 #Chose scheme
-stokesLimit
+quasiNeutrallyBuoyant
 particles		1
 colors 			1
 
@@ -12,13 +12,12 @@ bondedForces	    	        multiblob.bonds
 maxNumberPartInCellNonBonded    50
 maxNumberPartInCell     	50
 
-
 #Fluid density
 densfluid               1
 #Shear viscosity
 shearviscosity          1
 #Temperature in energy units (T -> k_B*T)
-temperature             0.1
+temperature             1
 
 
 #Number of fluid cells in the directions x, y and z
@@ -42,12 +41,12 @@ coordinates		multiblob.pos
 #Number of relaxation steps during which fluam save no data
 numstepsRelaxation	0
 #Number of steps (no counting numstepsRelaxation)
-numsteps                10000
+numsteps                1000000
 #Save data every samplefreq steps
 samplefreq              1000
 
 #Time step
-dt			0.0002
+dt			0.01
 
 
 #Prefix for the output files. The directory where the data is saved
