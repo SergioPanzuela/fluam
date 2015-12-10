@@ -42,6 +42,7 @@ const string wsoretCoefficient="soretCoefficient";
 const string wbackgroundvelocity="backgroundvelocity";
 const string wsetDevice="setDevice";
 const string wsetparticles="particles";
+const string wsetcolors="colors";
 const string wparticlesdata="particlesdata";
 string particlesdata;
 const string wsetboundary="boundary";
@@ -84,6 +85,7 @@ const string wCheckVelocity="checkVelocity";
 const string wsaveFluid="saveFluid";
 const string wsaveVTK="saveVTK";
 const string wbondedForces="bondedForces";
+const string wthreeBondedForces="threeBondedForces";
 const string wcomputeNonBondedForces="computeNonBondedForces";
 
 const string wGhost="ghost";
@@ -171,6 +173,7 @@ bool loadDataMain(int argc, char* argv[]){
   savedensity = 0;
   volumeboundaryconst = 8.;
   loadparticles=0;
+  loadcolors=0;
   maxNumberPartInCell = 6;
   maxNumberPartInCellNonBonded = 6;
   cutoff = 0.;
@@ -187,6 +190,7 @@ bool loadDataMain(int argc, char* argv[]){
   mass = 0;
   nboundary = 0;
   bondedForces=0;
+  threeBondedForces = 0;
   computeNonBondedForces=1;
   setVolumeParticle=0;
   //DEFAULT PARAMETERS 
@@ -290,6 +294,10 @@ bool loadDataMain(int argc, char* argv[]){
     
     if(word==wsetparticles){
       fileinput >> setparticles;
+    }
+
+    else if(word==wsetcolors){
+      fileinput >> loadcolors;
     }
     //NEW_PARAMETER
     else if(word==widentity_prefactor){
@@ -438,6 +446,10 @@ bool loadDataMain(int argc, char* argv[]){
     else if(word==wbondedForces){
       bondedForces=1;
       fileinput >> bondedForcesFile;
+    }
+    else if(word==wthreeBondedForces){
+      threeBondedForces=1;
+      fileinput >> threeBondedForcesFile;
     }
     else if(word==wcomputeNonBondedForces){
       fileinput >> computeNonBondedForces;

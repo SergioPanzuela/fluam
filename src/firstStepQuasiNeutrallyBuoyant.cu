@@ -133,26 +133,18 @@ bool firstStepQuasiNeutrallyBuoyant(int numBlocksNeighbors,
   //STEP 2: CALCULATE FORCES AND SPREAD THEM TO THE FLUID S^{n+1/2} * F^{n+1/2}
   //Fill "countparticlesincellX" lists
   //and spread particle force F 
-  kernelSpreadParticlesForce<<<numBlocksParticles,threadsPerBlockParticles>>>(rxcellGPU,
-									      rycellGPU,
-									      rzcellGPU,
-									      fxboundaryGPU,
-									      fyboundaryGPU,
-									      fzboundaryGPU,
-									      pc,
-									      errorKernel,
-									      bFV);    
-
-  // Spread particle thermal drift 
-  // drift = (m_f_tilde/(m_e+m_f_tilde) * kT * ( \delta S(q) / \delta q )
-  kernelSpreadParticlesThermalDrift<<<numBlocksParticles,threadsPerBlockParticles>>>(rxcellGPU,
-										     rycellGPU,
-										     rzcellGPU,
-										     fxboundaryGPU,
-										     fyboundaryGPU,
-										     fzboundaryGPU,
-										     pc,
-										     errorKernel);
+  //!*R Colors enabled
+  kernelSpreadParticlesForceColors<<<numBlocksParticles,threadsPerBlockParticles>>>(rxcellGPU,
+										    rycellGPU,
+										    rzcellGPU,
+										    fxboundaryGPU,
+										    fyboundaryGPU,
+										    fzboundaryGPU,
+										    pc,
+										    errorKernel,
+										    bFV,
+										    pt,
+										    tPBV);    
   
   
   
@@ -683,6 +675,7 @@ bool firstStepQuasiNeutrallyBuoyant(int numBlocksNeighbors,
   //STEP 2: CALCULATE FORCES AND SPREAD THEM TO THE FLUID S^{n+1/2} * F^{n+1/2}
   //Fill "countparticlesincellX" lists
   //and spread particle force F 
+<<<<<<< HEAD
   kernelSpreadParticlesForce<<<numBlocksParticles,threadsPerBlockParticles>>>(rxcellGPU,
 									      rycellGPU,
 									      rzcellGPU,
@@ -703,6 +696,20 @@ bool firstStepQuasiNeutrallyBuoyant(int numBlocksNeighbors,
 										     fzboundaryGPU,
 										     pc,
 										     errorKernel);
+=======
+  //!*R Colors enabled
+  kernelSpreadParticlesForceColors<<<numBlocksParticles,threadsPerBlockParticles>>>(rxcellGPU,
+										    rycellGPU,
+										    rzcellGPU,
+										    fxboundaryGPU,
+										    fyboundaryGPU,
+										    fzboundaryGPU,
+										    pc,
+										    errorKernel,
+										    bFV,
+										    pt,
+										    tPBV);    
+>>>>>>> Colors_and_threeSprings
   
   
   

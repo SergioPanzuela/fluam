@@ -30,7 +30,7 @@ NVCC = nvcc
 #
 #
 #Cuda flags
-NVCCFLAGS = -O -arch=sm_20 --compiler-bindir /usr/bin/gcc $(CUDALIB)
+NVCCFLAGS =-O3 -arch=sm_20 --compiler-bindir /usr/bin/gcc $(CUDALIB)
 
 #
 #
@@ -73,9 +73,8 @@ HydroAnalisysINCL = -I$(SRC_HYDROLIB)
 
 #
 #
-#Libraries -lfftw3 -lfftw3f
-LIBRARIES = -L/usr/local/cuda/lib64 -lcurand -L/usr/lib64/ -L./ -lgfortran -lcufft -lm 
-STATIC_LIBRARIES = 
+#Libraries
+LIBRARIES = -L/usr/local/cuda/lib64 -lcurand
 
 #
 #

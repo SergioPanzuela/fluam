@@ -38,8 +38,6 @@ bool saveParticles(int option, long long step){
     string savefile;
     savefile = outputname +  ".particles";
     file.open(savefile.c_str());
-    file << "#NUMBER PARTICLES " << np << endl;
-
     savefile = outputname + ".velocityParticles";
     fileVelocity.open(savefile.c_str());
     fileVelocity << "#NUMBER PARTICLES " << np << endl;
@@ -52,13 +50,14 @@ bool saveParticles(int option, long long step){
     }
   }
   else if(option == 1){
-    file << step * dt << endl;
+    //!*R small changes to the output layout, adding types
+    file <<"#"<<step * dt<< endl;
     fileVelocity << step * dt << endl;
     //This is for the interpolate velocity
     if(quasiNeutrallyBuoyant) 
       fileVelocityI << step * dt << endl;
     for(int i=0;i<np;i++){
-      file << rxParticle[i] << " " << ryParticle[i] << " " << rzParticle[i] << endl;
+      file << rxParticle[i] << " " << ryParticle[i] << " " << rzParticle[i] <<" "<< particle_types[i]<< endl;
       fileVelocity << vxParticle[i] << " " << vyParticle[i] << " " << vzParticle[i] << endl;
       //This is for the interpolate velocit
       if(quasiNeutrallyBuoyant || quasiNeutrallyBuoyant2D) 

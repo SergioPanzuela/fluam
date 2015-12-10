@@ -344,6 +344,13 @@ bool createBoundariesRK2GPU(){
 
     initForcesNonBonded();
 
+
+  //!*R Upload the particle type information to the GPU
+  cutilSafeCall(cudaMalloc((void**)&pt,sizeof(particle_type)));
+  cudaMalloc((void **)&particle_typesGPU, (nboundary+ np)*sizeof(int));
+  cudaMemcpy(particle_typesGPU, particle_types, (nboundary+np)*sizeof(int), cudaMemcpyHostToDevice);
+  initParticleTypes<<<1,1>>>(pt, particle_typesGPU, Aij_paramGPU, Bij_paramGPU);
+
   }
 
 

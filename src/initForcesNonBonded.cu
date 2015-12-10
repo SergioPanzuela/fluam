@@ -27,6 +27,13 @@ float functionForceNonBonded1(double r){
 
 
 }
+float functionForceNonBonded1(double r, double a, double b){
+  float sigma, epsilon;
+  sigma = 2 * lx / double(mx);
+  epsilon = temperature ;
+  //return -epsilon * ( r - sigma);
+  return (a*pow(1.0/r,12) - b*pow(1.0/r,6))/r;
+}
 
 bool initForcesNonBonded(){
   texforceNonBonded1.normalized = true;
@@ -34,6 +41,56 @@ bool initForcesNonBonded(){
   texforceNonBonded1.filterMode = cudaFilterModeLinear;//cudaFilterModeLinear and cudaFilterModePoint
 
   float *h_data;
+
+  //!*R initialization of the particle type interaction
+  double cutoffnear = 1.0; 
+  int ntypes = 1;
+  double *Aij_param;
+  double *Bij_param;
+  if(false/* || loadparticles==0*/){ //Always reads from the file
+    Aij_param = new double[ntypes*ntypes];
+    Bij_param = new double[ntypes*ntypes];
+    for(int i=0; i<ntypes; i++){
+      for(int j=0; j<ntypes; j++){
+        float sigma, epsilon;
+        sigma = 2 * lx / float(mx); //READ FROM FILE
+        epsilon = temperature;
+	Aij_param[i+ntypes*j] = 48.0f * pow(sigma,12)*epsilon;
+        Bij_param[i+ntypes*j] = 48.0f * pow(sigma,6)*0.5*epsilon;
+      }
+    }
+  }
+   else{
+     ifstream in("LJ.in");
+     in>>ntypes;
+     Aij_param = new double[ntypes*ntypes];
+     Bij_param = new double[ntypes*ntypes];
+     float sigma, epsilon;
+     sigma = 2 * lx / float(mx); //READ FROM FILE
+     epsilon = 1;
+	
+     for(int i=0; i<ntypes; i++)for(int j=0; j<ntypes; j++){
+        in>>Aij_param[i+ntypes*j];
+      }
+     
+     for(int i=0; i<ntypes; i++)for(int j=0; j<ntypes; j++){
+        in>>Bij_param[i+ntypes*j];
+      }
+     
+     in>>cutoffnear;
+}
+  //!*R Upload all the information to the GPU
+  cudaMalloc((void **)&Aij_paramGPU, ntypes*ntypes*sizeof(double));
+  cudaMalloc((void **)&Bij_paramGPU, ntypes*ntypes*sizeof(double));
+
+  cudaMemcpy(Aij_paramGPU, Aij_param, ntypes*ntypes*sizeof(double), cudaMemcpyHostToDevice);
+  cudaMemcpy(Bij_paramGPU, Bij_param, ntypes*ntypes*sizeof(double), cudaMemcpyHostToDevice);
+  cudaMemcpyToSymbol(ntypesGPU, &ntypes, sizeof(int));
+  cudaMemcpyToSymbol(cutoffnearGPU, &cutoffnear, sizeof(double));
+  
+
+
+
   int size = 4096;
   h_data = new float[size];
   float r, dr;
@@ -42,7 +99,6 @@ bool initForcesNonBonded(){
   r = 0.5 * dr;
   for(int i=0;i<size;i++){
     h_data[i] = functionForceNonBonded1(sqrt(r))/sqrt(r);
-    //cout << sqrt(r) << "   " << h_data[i] << endl;
     r += dr;
   }
   h_data[size-1] = 0.;
@@ -52,15 +108,18 @@ bool initForcesNonBonded(){
   cutilSafeCall( cudaMemcpyToArray( forceNonBonded1, 0, 0, h_data, size*sizeof(float), cudaMemcpyHostToDevice));
   cutilSafeCall( cudaBindTextureToArray( texforceNonBonded1, forceNonBonded1, channelDesc));
 
-
-  /*r = 0.5 * dr;
+  /*
+  r = 0.5 * dr;
     for(int i=0;i<size;i++){
     cout << r << " " << h_data[i] << endl;
     r += dr;
-    }*/
+    }
+    exit(0);
+*/
   cout << "INIT FORCE NON-BONDED 1 COMPLETED" << endl;
   delete[] h_data;
-
-
-  return 1;
+  //!*R clean up
+  delete[] Aij_param;
+  delete[] Bij_param;
+return 1;
 }

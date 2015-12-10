@@ -17,7 +17,6 @@
 // You should have received a copy of the GNU General Public License
 // along with Fluam. If not, see <http://www.gnu.org/licenses/>.
 
-
 #ifdef GLOBALS_PARTICLES
 #define EXTERN_PARTICLES
 #else
@@ -43,10 +42,13 @@ EXTERN_PARTICLES int* list;
 //EXTERN_PARTICLES int** neighbor1;
 //EXTERN_PARTICLES int** neighbor2;
 EXTERN_PARTICLES double *rxParticle, *ryParticle, *rzParticle;
+//!*R particle_type information for the CPU
+EXTERN_PARTICLES int *particle_types;
 EXTERN_PARTICLES double *vxParticle, *vyParticle, *vzParticle;
 EXTERN_PARTICLES double *vxParticleI, *vyParticleI, *vzParticleI;
 EXTERN_PARTICLES double volumeParticle;
 EXTERN_PARTICLES bool loadparticles;
+EXTERN_PARTICLES bool loadcolors;
 EXTERN_PARTICLES double cutoff;
 EXTERN_PARTICLES int numNeighbors;
 EXTERN_PARTICLES bool setVolumeParticle;
@@ -69,6 +71,15 @@ EXTERN_PARTICLES double* rxFixedPoint;
 EXTERN_PARTICLES double* ryFixedPoint;
 EXTERN_PARTICLES double* rzFixedPoint;
 
+EXTERN_PARTICLES bool threeBondedForces;
+EXTERN_PARTICLES string threeBondedForcesFile;
+EXTERN_PARTICLES int NbondsThreeParticle;
+EXTERN_PARTICLES int *threebondList;
+EXTERN_PARTICLES double *threekSprings;
+EXTERN_PARTICLES double *threer0Springs;
+EXTERN_PARTICLES int *threeNbonds;
+EXTERN_PARTICLES int *threeisinbonds;
+EXTERN_PARTICLES int *threeCumulativeIndex;
 
 
 
