@@ -7,7 +7,7 @@ particles		1
 cutoff                  4
 #Give file with the bonded force between particles (see fluam/bin/inputfile/README)
 #bondedForces	    	        multiblob.bonds
-threeBondedForces               rods.3bonds
+threeBondedForces               meshes.3bonds
 
 #Maximum number of particles in the neighbor list
 maxNumberPartInCellNonBonded    50
@@ -37,17 +37,17 @@ initfluid 1
 #To give an initial configuration for the particles
 #set loadparticles to 1 and provide the file for initial configuration
 loadparticles		1
-coordinates		rods.pos
+coordinates		meshes.pos
 
 #Number of relaxation steps during which fluam save no data
 numstepsRelaxation	0
 #Number of steps (no counting numstepsRelaxation)
 numsteps                100000
 #Save data every samplefreq steps
-samplefreq              500
+samplefreq              100
 
 #Time step
-dt			0.07
+dt			0.01
 
 
 #Prefix for the output files. The directory where the data is saved

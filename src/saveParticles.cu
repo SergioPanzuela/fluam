@@ -51,7 +51,7 @@ bool saveParticles(int option, long long step){
   }
   else if(option == 1){
     //!*R small changes to the output layout, adding types
-    file <<"#L=0.5;"<<step * dt<< endl;
+    file <<"#"<<step * dt<< endl;
     fileVelocity << step * dt << endl;
     //This is for the interpolate velocity
     float x,y,z;
@@ -73,7 +73,7 @@ bool saveParticles(int option, long long step){
 
       file << x << " " << y << " " << z <<" "<< 1/35.0<<" "<<particle_types[i]<< endl;
       */
-      file << x << " " << y << " " << z <<" "<< 1/35.0<<" "<<particle_types[i]<< endl;
+      file << x << " " << y << " " << z <<" "<<particle_types[i]<< endl;
       fileVelocity << vxParticle[i] << " " << vyParticle[i] << " " << vzParticle[i] << endl;
       //This is for the interpolate velocit
       if(quasiNeutrallyBuoyant || quasiNeutrallyBuoyant2D) 

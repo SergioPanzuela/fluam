@@ -1,6 +1,7 @@
 ###About this branch
 This branch is only tested with **Stokes limit** and **Quasi Neutrally Buoyant**!!
 
+The **rods** branch is just the master branch with a repulsive LJ force in "nonBondedForce.cu". Additionally, you can find a folder named rods under tools containing an utility to generate initial configurations of rods and meshes (joined using three body springs). 
 
 The **Colors** functionality allows you to stablish a different interaction for every pair based on an assigned particle type. Currently included only for the Stokes Limit and QuasiNeutrallyBuoyant schemes
 
