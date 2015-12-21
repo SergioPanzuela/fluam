@@ -1,28 +1,16 @@
-CC=g++
+CC=clang++-3.6
 
 #DEBUG=-g -DDEBUG
 
-INCLUDES = 
-
-
+OBJS=mesh.o rods.o 
 
 CFLAGS= -Ofast -ffast-math $(DEBUG) -funroll-loops  -march=native -std=c++11 -pipe -fomit-frame-pointer -funroll-loops
-
-
+CXXFLAGS=$(CFLAGS)
 
 EXECUTABLE=mesh
 
 all: mesh rods
 
-mesh: mesh.o 
-	$(CC) -o mesh mesh.o
-rods: rods.o 
-	$(CC) -o rods rods.o
-.cpp.o: 
-	$(CC) $(CFLAGS) $(INCLUDES) -c $< -o $@
-
-
-
 clean: 
-	rm mesh.o rods.o mesh rods
+	rm -f $(OBJS) mesh rods
 redo: clean all

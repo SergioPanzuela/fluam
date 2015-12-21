@@ -1,4 +1,5 @@
 bin/*.o
 bin/fluam
 data/*
-
+*~
+tools/rods/meshes.*

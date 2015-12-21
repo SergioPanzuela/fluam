@@ -21,7 +21,7 @@
 //!*R force function, returns F/r, currently a square function depending on the interaction parameters.
 //!*R You can use this function from any scheme, currently used in stokesLimitFunctions and quasiNeutrallyBuoyantFunctions
 __device__ double LJ(double r2, double *Aij, double *Bij, int typeindex, int i, int j){
-  if( (i/15) == (j/15)) return 0.0;
+  if((i/300) == (j/300)) return 0.0;
   if(r2==0.0) return 0.0;  
   else if(r2>(1.0/invcutoff2GPU)) return 0.0;
   double A = Aij[typeindex]*48.0f * pow(2.0,12);

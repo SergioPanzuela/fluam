@@ -1,17 +1,17 @@
 #Chose scheme
 quasiNeutrallyBuoyant
 particles		1
-#colors 			1
+#colors 	 	1
 
 #Cutoff for the particle-particle interaction
-cutoff                  4
+cutoff                  2.1
 #Give file with the bonded force between particles (see fluam/bin/inputfile/README)
-#bondedForces	    	        multiblob.bonds
+bondedForces	    	        meshes.2bonds
 threeBondedForces               meshes.3bonds
 
 #Maximum number of particles in the neighbor list
-maxNumberPartInCellNonBonded    50
-maxNumberPartInCell     	50
+maxNumberPartInCellNonBonded    20
+maxNumberPartInCell     	20
 
 #Fluid density
 densfluid               1
@@ -22,9 +22,9 @@ temperature             1
 
 
 #Number of fluid cells in the directions x, y and z
-cells   35 35 35
+cells   128 128 128
 #Dimensions of the simulation box
-celldimension	   	35 35 35
+celldimension	   	128 128 128
 
 
 #Fluid initial conditions
@@ -40,16 +40,16 @@ loadparticles		1
 coordinates		meshes.pos
 
 #Number of relaxation steps during which fluam save no data
-numstepsRelaxation	0
+numstepsRelaxation	10000
 #Number of steps (no counting numstepsRelaxation)
-numsteps                100000
+numsteps                1000000
 #Save data every samplefreq steps
-samplefreq              100
+samplefreq              10000
 
 #Time step
-dt			0.01
+dt			0.012
 
 
 #Prefix for the output files. The directory where the data is saved
 #should exist before running fluam
-outputname		../data/run1
+outputname		../data/run3
