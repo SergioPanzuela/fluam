@@ -1,4 +1,4 @@
 bin/*.o
 bin/fluam
 data/*
-
+dat/*

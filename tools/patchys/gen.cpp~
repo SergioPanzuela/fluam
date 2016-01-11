@@ -1,0 +1,46 @@
+#include<iostream>
+#include<fstream>
+#include<cmath>
+#define fori(x,y) for(int i=x; i<y;i++)
+
+int N;
+float L;
+vector<float> ps;
+ofstream outpos;
+ofstream outbond;
+
+typedef float[3] pos;
+
+
+void spawn_patchy(){
+
+  float r = 1.0f;
+
+  float h = r*sqrt(3)/2.0f;
+  
+
+  
+
+
+
+}
+int main(int argc, char *argv[]){
+  
+  N = 1;
+  L = 10.0f;
+  ps.resize(3*4*N);
+
+  fori(0,N){
+    spawn_patchy();
+  }
+  outpos.open("patchy.pos");
+  outbond.open("patchy.3bond");
+  fori(0,N){
+    write_patchy(i);
+
+
+
+  }
+
+  return 0;
+}

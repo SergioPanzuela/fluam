@@ -23,6 +23,8 @@
 __device__ double LJ(double r2, double *Aij, double *Bij, int typeindex, int i, int j){
   if(r2==0.0) return 0.0;  
   else if(r2>(1.0/invcutoff2GPU)) return 0.0;
+  return 0.0;
+  if( i/4 == j/4) return 0.0;
   if( i%4==0 && j%4==0){ //Between centers
     double A = Aij[typeindex];
     double B = Bij[typeindex];
