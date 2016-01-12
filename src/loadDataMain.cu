@@ -452,6 +452,7 @@ bool loadDataMain(int argc, char* argv[]){
     else if(word==wthreeBondedForces){
       threeBondedForces=1;
       fileinput >> threeBondedForcesFile;
+    }
     else if(word==wbondedForcesVersion){
       fileinput >> bondedForcesVersion;
     }
