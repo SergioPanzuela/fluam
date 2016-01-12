@@ -46,6 +46,7 @@ schemeQuasiNeutrallyBuoyant4pt2D.o \
 schemeTestJPS.o \
 schemeStokesLimitFirstOrder.o \
 schemeStokesLimit.o \
+schemeStokesLimitBigSystem.o \
 createCells.o \
 initializeFluid.o \
 initializeFluidParticlesWall.o \
@@ -196,6 +197,10 @@ boundary.h particles.h headerOtherFluidVariables.h ; \
 $(NVCC) $(NVCCFLAGS) $(NVCCINCLS) $(HDRS) -c $<
 
 schemeStokesLimit.o: schemeStokesLimit.cu header.h cells.h \
+boundary.h particles.h headerOtherFluidVariables.h ; \
+$(NVCC) $(NVCCFLAGS) $(NVCCINCLS) $(HDRS) -c $<
+
+schemeStokesLimitBigSystem.o: schemeStokesLimitBigSystem.cu header.h cells.h \
 boundary.h particles.h headerOtherFluidVariables.h ; \
 $(NVCC) $(NVCCFLAGS) $(NVCCINCLS) $(HDRS) -c $<
 
@@ -397,7 +402,8 @@ runSchemeMomentumCoupling.cu boundaryParticlesFunctionMomentumCoupling.cu nonBon
 updateFluidMomentumCoupling.cu saveFunctionsSchemeStokesLimit.cu runSchemeStokesLimit.cu \
 boundaryParticlesFunctionStokesLimit.cu stokesLimitFunctions.cu createCellsStokesLimitGPU.cu \
 freeCellsStokesLimitGPU.cu schemeStokesLimitFirstOrder.cu runSchemeStokesLimitFirstOrder.cu \
-boundaryParticlesFunctionStokesLimitFirstOrder.cu ; \
+boundaryParticlesFunctionStokesLimitFirstOrder.cu createBoundariesRK2BigSystemGPU.cu \
+boundaryParticlesFunctionStokesLimitBigSystem.cu stokesLimitFunctionsBigSystem.cu runSchemeStokesLimitBigSystem.cu ; \
 	$(NVCC) $(NVCCFLAGS) $(NVCCINCLS) $(HDRS) -c $<
 
 

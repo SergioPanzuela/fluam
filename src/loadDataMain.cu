@@ -88,6 +88,7 @@ const string wbondedForces="bondedForces";
 const string wthreeBondedForces="threeBondedForces";
 const string wbondedForcesVersion="bondedForcesVersion";
 const string wcomputeNonBondedForces="computeNonBondedForces";
+const string wbigSystem="bigSystem";
 
 const string wGhost="ghost";
 //Other Fluid Variables
@@ -195,6 +196,7 @@ bool loadDataMain(int argc, char* argv[]){
   bondedForcesVersion=0;
   computeNonBondedForces=1;
   setVolumeParticle=0;
+  bigSystem=0;
   //DEFAULT PARAMETERS 
 
   //OTHER FLUID VARIABLES
@@ -458,6 +460,9 @@ bool loadDataMain(int argc, char* argv[]){
     }
     else if(word==wcomputeNonBondedForces){
       fileinput >> computeNonBondedForces;
+    }
+    else if(word==wbigSystem){
+      fileinput >> bigSystem;
     }
     //Other FLuid Variables
     //Binary Mixture Begins

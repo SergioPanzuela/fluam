@@ -24,7 +24,7 @@
 #include "boundary.h"
 
 
-bool schemeStokesLimit(){
+bool schemeStokesLimitBigSystem(){
   
   //Create fluid cells
   if(!createCells()) return 0;
@@ -40,9 +40,7 @@ bool schemeStokesLimit(){
   //New bonded forces
   if(bondedForces)
     if(!initializeBondedForces()) return 0;
-  if(threeBondedForces)
-    if(!initializeThreeBondedForces()) return 0;
-  
+
   //Initialize the fluid
   if(!initializeFluid()) return 0;
 
@@ -53,20 +51,18 @@ bool schemeStokesLimit(){
   if(!initializeFluidIncompressibleGPU()) return 0;
 
   //Create boundaries GPU
-  if(!createBoundariesRK2GPU()) return 0;
+  if(!createBoundariesRK2BigSystemGPU()) return 0;
  
   //New bonded forces
   if(bondedForces)
     if(!createBondedForcesGPU()) return 0;
-  if(threeBondedForces)
-    if(!createThreeBondedForcesGPU()) return 0;
-  
+
   //Initialize save functions
   if(!saveFunctionsSchemeStokesLimit(0,0)) return 0;
 
 
   //Run the simulation
-  if(!runSchemeStokesLimit()) return 0;
+  if(!runSchemeStokesLimitBigSystem()) return 0;
     
 
   //Close save functions
@@ -84,7 +80,7 @@ bool schemeStokesLimit(){
   if(!freeCellsStokesLimitGPU()) return 0;
 
   //Free boundaries GPU
-  if(!freeBoundariesRK2GPU()) return 0;
+  if(!freeBoundariesRK2BigSystemGPU()) return 0;
 
   //Free boundaries
   if(setboundary)
@@ -95,13 +91,13 @@ bool schemeStokesLimit(){
     if(!freeParticles()) return 0;
 
   //Free memory
-  if(!freeMemoryStokesLimit()) return 0;
+  if(!freeMemoryStokesLimitBigSystem()) return 0;
   
   
   return 1;
 }
 
-bool freeMemoryStokesLimit(){
+bool freeMemoryStokesLimitBigSystem(){
 
   delete[] cvx;
   delete[] cvy;
