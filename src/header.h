@@ -1,6 +1,6 @@
 // Filename: header.h
 //
-// Copyright (c) 2010-2015, Florencio Balboa Usabiaga
+// Copyright (c) 2010-2016, Florencio Balboa Usabiaga
 //
 // This file is part of Fluam
 //
@@ -74,6 +74,8 @@ bool createParticles();
 //NEW bonded forces
 bool initializeBondedForces();
 bool initializeThreeBondedForces();
+bool initializeBondedForcesOldVersion();
+
 bool freeBondedForces();
 bool createBondedForcesGPU();
 bool createThreeBondedForcesGPU();

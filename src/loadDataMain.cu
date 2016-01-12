@@ -1,6 +1,6 @@
 // Filename: loadDataMain.cu
 //
-// Copyright (c) 2010-2015, Florencio Balboa Usabiaga
+// Copyright (c) 2010-2016, Florencio Balboa Usabiaga
 //
 // This file is part of Fluam
 //
@@ -86,6 +86,7 @@ const string wsaveFluid="saveFluid";
 const string wsaveVTK="saveVTK";
 const string wbondedForces="bondedForces";
 const string wthreeBondedForces="threeBondedForces";
+const string wbondedForcesVersion="bondedForcesVersion";
 const string wcomputeNonBondedForces="computeNonBondedForces";
 
 const string wGhost="ghost";
@@ -191,6 +192,7 @@ bool loadDataMain(int argc, char* argv[]){
   nboundary = 0;
   bondedForces=0;
   threeBondedForces = 0;
+  bondedForcesVersion=0;
   computeNonBondedForces=1;
   setVolumeParticle=0;
   //DEFAULT PARAMETERS 
@@ -450,6 +452,8 @@ bool loadDataMain(int argc, char* argv[]){
     else if(word==wthreeBondedForces){
       threeBondedForces=1;
       fileinput >> threeBondedForcesFile;
+    else if(word==wbondedForcesVersion){
+      fileinput >> bondedForcesVersion;
     }
     else if(word==wcomputeNonBondedForces){
       fileinput >> computeNonBondedForces;

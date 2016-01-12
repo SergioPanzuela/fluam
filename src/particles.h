@@ -1,6 +1,6 @@
 // Filename: particles.h
 //
-// Copyright (c) 2010-2015, Florencio Balboa Usabiaga
+// Copyright (c) 2010-2016, Florencio Balboa Usabiaga
 //
 // This file is part of Fluam
 //
@@ -56,6 +56,7 @@ EXTERN_PARTICLES bool setVolumeParticle;
 
 //NEW bonded forces
 EXTERN_PARTICLES bool bondedForces;
+EXTERN_PARTICLES bool bondedForcesVersion;
 EXTERN_PARTICLES string bondedForcesFile;
 EXTERN_PARTICLES int nbondsParticleParticle;
 EXTERN_PARTICLES int nbondsParticleFixedPoint;
