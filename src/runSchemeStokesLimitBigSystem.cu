@@ -125,7 +125,7 @@ bool runSchemeStokesLimitBigSystem(){
 						       vecinomxmymzGPU,
 						       pVecinos);
 
-  cout << "ERROR 1 ==== " << cudaGetErrorString(cudaGetLastError()) << endl;
+  //  cout << "ERROR 1 ==== " << cudaGetErrorString(cudaGetLastError()) << endl;
 
   //Initialize plan
   cufftHandle FFT;
@@ -189,7 +189,7 @@ bool runSchemeStokesLimitBigSystem(){
 									dRand,
 									pVecinos,
 									sqrt(2));
-    cout << "ERROR 2 ==== " << cudaGetErrorString(cudaGetLastError()) << endl;
+    //    cout << "ERROR 2 ==== " << cudaGetErrorString(cudaGetLastError()) << endl;
     
     //STEP 3
     //Solve fluid velocity field

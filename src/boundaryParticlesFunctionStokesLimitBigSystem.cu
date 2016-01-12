@@ -62,6 +62,8 @@ void boundaryParticlesFunctionStokesLimitBigSystem(int option,
 	 vzboundaryGPU,
 	 pc,errorKernel,
 	 bFV,
+	 tPBV,
+	 pt,
 	 pNeighbors);
 
       //Set vxGPU to zero
@@ -125,6 +127,8 @@ void boundaryParticlesFunctionStokesLimitBigSystem(int option,
        vzboundaryGPU,
        pc,errorKernel,
        bFV,
+       tPBV,
+       pt,
        pNeighbors);
 
     //Set vxGPU to zero
