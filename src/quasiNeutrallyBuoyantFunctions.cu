@@ -65,7 +65,7 @@ __global__ void kernelSpreadParticlesForceColors(const double* rxcellGPU,
   //fz = -0.01*rz;
 
 
-
+  fz = -100*rz;
   
   if(particlesWallGPU){
     //INCLUDE WALL REPULSION HERE

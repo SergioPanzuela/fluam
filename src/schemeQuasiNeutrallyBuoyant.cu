@@ -40,6 +40,8 @@ bool schemeQuasiNeutrallyBuoyant(){
   //New bonded forces
   if(bondedForces)
     if(!initializeBondedForces()) return 0;
+  if(threeBondedForces)
+    if(!initializeThreeBondedForces()) return 0;
 
   //Initialize the fluid
   if(!initializeFluid()) return 0;
@@ -56,6 +58,8 @@ bool schemeQuasiNeutrallyBuoyant(){
   //New bonded forces
   if(bondedForces)
     if(!createBondedForcesGPU()) return 0;
+  if(threeBondedForces)
+    if(!createThreeBondedForcesGPU()) return 0;
 
   //Initialize save functions
   if(!saveFunctionsSchemeIncompressibleBoundary(0,0)) return 0;

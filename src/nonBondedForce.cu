@@ -23,16 +23,15 @@
 __device__ double LJ(double r2, double *Aij, double *Bij, int typeindex, int i, int j){
   if(r2==0.0) return 0.0;  
   else if(r2>(1.0/invcutoff2GPU)) return 0.0;
-  return 0.0;
   if( i/4 == j/4) return 0.0;
   if( i%4==0 && j%4==0){ //Between centers
-    double A = Aij[typeindex];
-    double B = Bij[typeindex];
-
-    return 0.0;
+      double A = Aij[typeindex];
+      double B = Bij[typeindex];  
+      double r6 = 1.0/(r2*r2*r2);
+      return ((A*r6*r6 - B*r6)-(A*1.8817e-06-B*0.0013717))/r2;
   }
   else if((i%4+j%4)>1){ //Between patchys
-
+    if(r2>(4.0/(9.0*invcutoff2GPU))) return 0.0;
     int ic = (i/4);//Centers
     int jc = (j/4);
 
@@ -47,10 +46,10 @@ __device__ double LJ(double r2, double *Aij, double *Bij, int typeindex, int i, 
     double ryj =  fetch_double(texryboundaryGPU,j);
     double rzj =  fetch_double(texrzboundaryGPU,j);
 
-    double rxij =rxi-rxj;
-    double ryij =ryi-ryj;
-    double rzij =rzi-rzj;
-    double r = sqrt(r2);
+    double rxij =-(rxi-rxj);
+    double ryij =-(ryi-ryj);
+    double rzij =-(rzi-rzj);
+    double r = sqrt(rxij*rxij+ryij*ryij+rzij*rzij);
     rxij/=r;    ryij/=r;    rzij/=r;
 
     //Centers
@@ -78,16 +77,16 @@ __device__ double LJ(double r2, double *Aij, double *Bij, int typeindex, int i, 
     double e2z = rzj-rzjc;
     double e2mod = sqrt(e2x*e2x+e2y*e2y+e2z*e2z);
     
-    e1x/=e1mod; e1y/=e1mod; e1z/=e1mod;
+    e2x/=e2mod; e2y/=e2mod; e2z/=e2mod;
 
-    double  cosang = cos(2*3.1415);
-
+    double cosang = cutoffnearGPU;
     double e1r = e1x*rxij + e1y*ryij + e1z*rzij; 
-    double e2r = e2x*rxij + e2y*ryij + e2z*rzij; 
+    double e2r = -(e2x*rxij + e2y*ryij + e2z*rzij); 
 
-    if(abs(e1r)<cosang && abs(e2r)<cosang){
-      double A = Aij[typeindex]*48.0f * pow(2.0,12);
-      double B = Bij[typeindex]*48.0f * pow(2.0,6)*0.5;  
+    if(e1r>=cosang && e2r>=cosang){
+
+      double A = Aij[typeindex];
+      double B = Bij[typeindex];  
       double r6 = 1.0/(r2*r2*r2);
       return (A*r6*r6 - B*r6)/r2;
     }

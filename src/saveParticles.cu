@@ -57,7 +57,21 @@ bool saveParticles(int option, long long step){
     if(quasiNeutrallyBuoyant) 
       fileVelocityI << step * dt << endl;
     for(int i=0;i<np;i++){
-      file << rxParticle[i] << " " << ryParticle[i] << " " << rzParticle[i] <<" "<< particle_types[i]<< endl;
+      float x,y,z;
+      float L = 128;
+      x = rxParticle[i];
+      y = ryParticle[i];
+      z = rzParticle[i];                                                                                     
+      x /= L;                                                                             
+      y /= L;                                                                             
+      z /= L;                                                                             
+      x-=int( ( (x<0)?-0.5:0.5 ) + x);                                                   
+      y-=int( ( (y<0)?-0.5:0.5 ) + y);                                                   
+      z-=int( ( (z<0)?-0.5:0.5 ) + z);                                                   
+      file << x*L << " " << y*L << " " << z*L<<" "<< ((particle_types[i]==1)?1.2:0.5)<<" "<<particle_types[i]<< endl;
+      //file << x << " " << y << " " << z <<" 0.5 "<<particle_types[i]<< endl;
+
+      //      file << rxParticle[i] << " " << ryParticle[i] << " " << rzParticle[i] <<" "<< particle_types[i]<< endl;
       fileVelocity << vxParticle[i] << " " << vyParticle[i] << " " << vzParticle[i] << endl;
       //This is for the interpolate velocit
       if(quasiNeutrallyBuoyant || quasiNeutrallyBuoyant2D) 

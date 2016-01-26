@@ -86,7 +86,7 @@ __device__ void forceBondedThreeParticleGPU(const int i,
       ampli = -kSpring*sqrt(2.0/(1-a3));
     }
     */
-     ampli = kSpring * (acos(a3)-3.1415)/sqrt(1-a3*a3);
+     ampli = kSpring * (acos(a3)-2.0*3.1415/3.0)/sqrt(1-a3*a3);
     
 
 
