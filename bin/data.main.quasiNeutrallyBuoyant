@@ -1,4 +1,4 @@
-setDevice 1
+#setDevice 1
 #Chose scheme
 quasiNeutrallyBuoyant
 particles		1
@@ -20,7 +20,7 @@ densfluid               1
 #Shear viscosity
 shearviscosity          1
 #Temperature in energy units (T -> k_B*T)
-temperature             0.1
+temperature             0.001
 
 
 #Number of fluid cells in the directions x, y and z
@@ -45,13 +45,14 @@ coordinates		patchy.pos
 #Number of relaxation steps during which fluam save no data
 numstepsRelaxation	0
 #Number of steps (no counting numstepsRelaxation)
-numsteps                10000
-samplefreq              100
+numsteps                5000000
+samplefreq              2000
 
 #Time step
-dt			0.08
+dt			0.05
 
 
 #Prefix for the output files. The directory where the data is saved
 #should exist before running fluam
+#outputname		/storage/DATA/patchys/run1-fixed-highN-0.01T-30deg-lowrcut
 outputname		../data/kkrun1

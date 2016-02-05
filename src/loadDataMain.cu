@@ -609,8 +609,15 @@ bool loadDataMain(int argc, char* argv[]){
   fileout << wordfile << endl;
   fileout.close();
   //cout << 
+  
+  string LJsave = outputname + ".LJin";
+  fileout.open(LJsave.c_str());
+  ifstream LJin("LJ.in");
+  string strtemp;
+  while(getline(LJin,strtemp))fileout<<strtemp<<endl;
 
-
+  LJin.close();
+  fileout.close();
   cout <<  "READ " << fileinputname.c_str() << " :                DONE" << endl;
 
   return 1;

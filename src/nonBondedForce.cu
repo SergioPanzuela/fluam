@@ -28,12 +28,13 @@ __device__ double LJ(double r2, double *Aij, double *Bij, int typeindex, int i, 
       double A = Aij[typeindex];
       double B = Bij[typeindex];  
       double r6 = 1.0/(r2*r2*r2);
-      return ((A*r6*r6 - B*r6)-(A*1.8817e-06-B*0.0013717))/r2;
+      //      return ((A*r6*r6 - B*r6)-(A*1.8817e-06-B*0.0013717))/r2;
+      return (A*r6*r6 - B*r6)/r2;
   }
   else if((i%4+j%4)>1){ //Between patchys
-    if(r2>(4.0/(9.0*invcutoff2GPU))) return 0.0;
-    int ic = (i/4);//Centers
-    int jc = (j/4);
+    if(r2>(4.1/(9.0*invcutoff2GPU))) return 0.0;
+    int ic = 4*(i/4);//Centers
+    int jc = 4*(j/4);
 
 
     double rxi =  fetch_double(texrxboundaryGPU,i);
@@ -51,7 +52,7 @@ __device__ double LJ(double r2, double *Aij, double *Bij, int typeindex, int i, 
     double rzij =-(rzi-rzj);
     double r = sqrt(rxij*rxij+ryij*ryij+rzij*rzij);
     rxij/=r;    ryij/=r;    rzij/=r;
-
+    
     //Centers
     double rxjc =  fetch_double(texrxboundaryGPU,jc);
     double ryjc =  fetch_double(texryboundaryGPU,jc);
