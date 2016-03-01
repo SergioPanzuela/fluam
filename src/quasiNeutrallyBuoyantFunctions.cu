@@ -159,7 +159,7 @@ __global__ void kernelSpreadParticlesForceColors(const double* rxcellGPU,
       rzij =  (rz - fetch_double(texrzboundaryGPU,particle));
       rzij =  (rzij - int(rzij*invlzGPU + 0.5*((rzij>0)-(rzij<0)))*lzGPU);
       r2 = rxij*rxij + ryij*ryij + rzij*rzij;
-      type_j = pt->types[particle];f =LJ(r2, pt->Aij_param, pt->Bij_param, type_i+ntypesGPU*type_j, nboundaryGPU+i, particle);
+      type_j = pt->types[particle];f =LJ(r2, pt->Aij_param, pt->Bij_param, type_i+ntypesGPU*type_j, type_i, type_j);
       fx += f * rxij;
       fy += f * ryij;
       fz += f * rzij;
@@ -177,7 +177,7 @@ __global__ void kernelSpreadParticlesForceColors(const double* rxcellGPU,
       rzij =  (rz - fetch_double(texrzboundaryGPU,particle));
       rzij =  (rzij - int(rzij*invlzGPU + 0.5*((rzij>0)-(rzij<0)))*lzGPU);
       r2 = rxij*rxij + ryij*ryij + rzij*rzij;
-      type_j = pt->types[particle];f =LJ(r2, pt->Aij_param, pt->Bij_param, type_i+ntypesGPU*type_j, nboundaryGPU+i, particle);
+      type_j = pt->types[particle];f =LJ(r2, pt->Aij_param, pt->Bij_param, type_i+ntypesGPU*type_j, type_i, type_j);
       fx += f * rxij;
       fy += f * ryij;
       fz += f * rzij;
@@ -194,7 +194,7 @@ __global__ void kernelSpreadParticlesForceColors(const double* rxcellGPU,
       rzij =  (rz - fetch_double(texrzboundaryGPU,particle));
       rzij =  (rzij - int(rzij*invlzGPU + 0.5*((rzij>0)-(rzij<0)))*lzGPU);
       r2 = rxij*rxij + ryij*ryij + rzij*rzij;
-      type_j = pt->types[particle];f =LJ(r2, pt->Aij_param, pt->Bij_param, type_i+ntypesGPU*type_j, nboundaryGPU+i, particle);
+      type_j = pt->types[particle];f =LJ(r2, pt->Aij_param, pt->Bij_param, type_i+ntypesGPU*type_j, type_i, type_j);
       fx += f * rxij;
       fy += f * ryij;
       fz += f * rzij;
@@ -211,7 +211,7 @@ __global__ void kernelSpreadParticlesForceColors(const double* rxcellGPU,
       rzij =  (rz - fetch_double(texrzboundaryGPU,particle));
       rzij =  (rzij - int(rzij*invlzGPU + 0.5*((rzij>0)-(rzij<0)))*lzGPU);
       r2 = rxij*rxij + ryij*ryij + rzij*rzij;
-      type_j = pt->types[particle];f =LJ(r2, pt->Aij_param, pt->Bij_param, type_i+ntypesGPU*type_j, nboundaryGPU+i, particle);
+      type_j = pt->types[particle];f =LJ(r2, pt->Aij_param, pt->Bij_param, type_i+ntypesGPU*type_j, type_i, type_j);
       fx += f * rxij;
       fy += f * ryij;
       fz += f * rzij;
@@ -228,7 +228,7 @@ __global__ void kernelSpreadParticlesForceColors(const double* rxcellGPU,
       rzij =  (rz - fetch_double(texrzboundaryGPU,particle));
       rzij =  (rzij - int(rzij*invlzGPU + 0.5*((rzij>0)-(rzij<0)))*lzGPU);
       r2 = rxij*rxij + ryij*ryij + rzij*rzij;
-      type_j = pt->types[particle];f =LJ(r2, pt->Aij_param, pt->Bij_param, type_i+ntypesGPU*type_j, nboundaryGPU+i, particle);
+      type_j = pt->types[particle];f =LJ(r2, pt->Aij_param, pt->Bij_param, type_i+ntypesGPU*type_j, type_i, type_j);
       fx += f * rxij;
       fy += f * ryij;
       fz += f * rzij;
@@ -246,7 +246,7 @@ __global__ void kernelSpreadParticlesForceColors(const double* rxcellGPU,
       rzij =  (rz - fetch_double(texrzboundaryGPU,particle));
       rzij =  (rzij - int(rzij*invlzGPU + 0.5*((rzij>0)-(rzij<0)))*lzGPU);
       r2 = rxij*rxij + ryij*ryij + rzij*rzij;
-      type_j = pt->types[particle];f =LJ(r2, pt->Aij_param, pt->Bij_param, type_i+ntypesGPU*type_j, nboundaryGPU+i, particle);
+      type_j = pt->types[particle];f =LJ(r2, pt->Aij_param, pt->Bij_param, type_i+ntypesGPU*type_j, type_i, type_j);
       fx += f * rxij;
       fy += f * ryij;
       fz += f * rzij;
@@ -263,7 +263,7 @@ __global__ void kernelSpreadParticlesForceColors(const double* rxcellGPU,
       rzij =  (rz - fetch_double(texrzboundaryGPU,particle));
       rzij =  (rzij - int(rzij*invlzGPU + 0.5*((rzij>0)-(rzij<0)))*lzGPU);
       r2 = rxij*rxij + ryij*ryij + rzij*rzij;
-      type_j = pt->types[particle];f =LJ(r2, pt->Aij_param, pt->Bij_param, type_i+ntypesGPU*type_j, nboundaryGPU+i, particle);
+      type_j = pt->types[particle];f =LJ(r2, pt->Aij_param, pt->Bij_param, type_i+ntypesGPU*type_j, type_i, type_j);
       fx += f * rxij;
       fy += f * ryij;
       fz += f * rzij;
@@ -280,7 +280,7 @@ __global__ void kernelSpreadParticlesForceColors(const double* rxcellGPU,
       rzij =  (rz - fetch_double(texrzboundaryGPU,particle));
       rzij =  (rzij - int(rzij*invlzGPU + 0.5*((rzij>0)-(rzij<0)))*lzGPU);
       r2 = rxij*rxij + ryij*ryij + rzij*rzij;
-      type_j = pt->types[particle];f =LJ(r2, pt->Aij_param, pt->Bij_param, type_i+ntypesGPU*type_j, nboundaryGPU+i, particle);
+      type_j = pt->types[particle];f =LJ(r2, pt->Aij_param, pt->Bij_param, type_i+ntypesGPU*type_j, type_i, type_j);
       fx += f * rxij;
       fy += f * ryij;
       fz += f * rzij;
@@ -297,7 +297,7 @@ __global__ void kernelSpreadParticlesForceColors(const double* rxcellGPU,
       rzij =  (rz - fetch_double(texrzboundaryGPU,particle));
       rzij =  (rzij - int(rzij*invlzGPU + 0.5*((rzij>0)-(rzij<0)))*lzGPU);
       r2 = rxij*rxij + ryij*ryij + rzij*rzij;
-      type_j = pt->types[particle];f =LJ(r2, pt->Aij_param, pt->Bij_param, type_i+ntypesGPU*type_j, nboundaryGPU+i, particle);
+      type_j = pt->types[particle];f =LJ(r2, pt->Aij_param, pt->Bij_param, type_i+ntypesGPU*type_j, type_i, type_j);
       fx += f * rxij;
       fy += f * ryij;
       fz += f * rzij;
@@ -314,7 +314,7 @@ __global__ void kernelSpreadParticlesForceColors(const double* rxcellGPU,
       rzij =  (rz - fetch_double(texrzboundaryGPU,particle));
       rzij =  (rzij - int(rzij*invlzGPU + 0.5*((rzij>0)-(rzij<0)))*lzGPU);
       r2 = rxij*rxij + ryij*ryij + rzij*rzij;
-      type_j = pt->types[particle];f =LJ(r2, pt->Aij_param, pt->Bij_param, type_i+ntypesGPU*type_j, nboundaryGPU+i, particle);
+      type_j = pt->types[particle];f =LJ(r2, pt->Aij_param, pt->Bij_param, type_i+ntypesGPU*type_j, type_i, type_j);
       fx += f * rxij;
       fy += f * ryij;
       fz += f * rzij;
@@ -331,7 +331,7 @@ __global__ void kernelSpreadParticlesForceColors(const double* rxcellGPU,
       rzij =  (rz - fetch_double(texrzboundaryGPU,particle));
       rzij =  (rzij - int(rzij*invlzGPU + 0.5*((rzij>0)-(rzij<0)))*lzGPU);
       r2 = rxij*rxij + ryij*ryij + rzij*rzij;
-      type_j = pt->types[particle];f =LJ(r2, pt->Aij_param, pt->Bij_param, type_i+ntypesGPU*type_j, nboundaryGPU+i, particle);
+      type_j = pt->types[particle];f =LJ(r2, pt->Aij_param, pt->Bij_param, type_i+ntypesGPU*type_j, type_i, type_j);
       fx += f * rxij;
       fy += f * ryij;
       fz += f * rzij;
@@ -348,7 +348,7 @@ __global__ void kernelSpreadParticlesForceColors(const double* rxcellGPU,
       rzij =  (rz - fetch_double(texrzboundaryGPU,particle));
       rzij =  (rzij - int(rzij*invlzGPU + 0.5*((rzij>0)-(rzij<0)))*lzGPU);
       r2 = rxij*rxij + ryij*ryij + rzij*rzij;
-      type_j = pt->types[particle];f =LJ(r2, pt->Aij_param, pt->Bij_param, type_i+ntypesGPU*type_j, nboundaryGPU+i, particle);
+      type_j = pt->types[particle];f =LJ(r2, pt->Aij_param, pt->Bij_param, type_i+ntypesGPU*type_j, type_i, type_j);
       fx += f * rxij;
       fy += f * ryij;
       fz += f * rzij; 
@@ -365,7 +365,7 @@ __global__ void kernelSpreadParticlesForceColors(const double* rxcellGPU,
       rzij =  (rz - fetch_double(texrzboundaryGPU,particle));
       rzij =  (rzij - int(rzij*invlzGPU + 0.5*((rzij>0)-(rzij<0)))*lzGPU);
       r2 = rxij*rxij + ryij*ryij + rzij*rzij;
-      type_j = pt->types[particle];f =LJ(r2, pt->Aij_param, pt->Bij_param, type_i+ntypesGPU*type_j, nboundaryGPU+i, particle);
+      type_j = pt->types[particle];f =LJ(r2, pt->Aij_param, pt->Bij_param, type_i+ntypesGPU*type_j, type_i, type_j);
       fx += f * rxij;
       fy += f * ryij;
       fz += f * rzij;
@@ -382,7 +382,7 @@ __global__ void kernelSpreadParticlesForceColors(const double* rxcellGPU,
       rzij =  (rz - fetch_double(texrzboundaryGPU,particle));
       rzij =  (rzij - int(rzij*invlzGPU + 0.5*((rzij>0)-(rzij<0)))*lzGPU);
       r2 = rxij*rxij + ryij*ryij + rzij*rzij;
-      type_j = pt->types[particle];f =LJ(r2, pt->Aij_param, pt->Bij_param, type_i+ntypesGPU*type_j, nboundaryGPU+i, particle);
+      type_j = pt->types[particle];f =LJ(r2, pt->Aij_param, pt->Bij_param, type_i+ntypesGPU*type_j, type_i, type_j);
       fx += f * rxij;
       fy += f * ryij;
       fz += f * rzij;
@@ -399,7 +399,7 @@ __global__ void kernelSpreadParticlesForceColors(const double* rxcellGPU,
       rzij =  (rz - fetch_double(texrzboundaryGPU,particle));
       rzij =  (rzij - int(rzij*invlzGPU + 0.5*((rzij>0)-(rzij<0)))*lzGPU);
       r2 = rxij*rxij + ryij*ryij + rzij*rzij;
-      type_j = pt->types[particle];f =LJ(r2, pt->Aij_param, pt->Bij_param, type_i+ntypesGPU*type_j, nboundaryGPU+i, particle);
+      type_j = pt->types[particle];f =LJ(r2, pt->Aij_param, pt->Bij_param, type_i+ntypesGPU*type_j, type_i, type_j);
       fx += f * rxij;
       fy += f * ryij;
       fz += f * rzij;
@@ -416,7 +416,7 @@ __global__ void kernelSpreadParticlesForceColors(const double* rxcellGPU,
       rzij =  (rz - fetch_double(texrzboundaryGPU,particle));
       rzij =  (rzij - int(rzij*invlzGPU + 0.5*((rzij>0)-(rzij<0)))*lzGPU);
       r2 = rxij*rxij + ryij*ryij + rzij*rzij;
-      type_j = pt->types[particle];f =LJ(r2, pt->Aij_param, pt->Bij_param, type_i+ntypesGPU*type_j, nboundaryGPU+i, particle);
+      type_j = pt->types[particle];f =LJ(r2, pt->Aij_param, pt->Bij_param, type_i+ntypesGPU*type_j, type_i, type_j);
       fx += f * rxij;
       fy += f * ryij;
       fz += f * rzij;
@@ -433,7 +433,7 @@ __global__ void kernelSpreadParticlesForceColors(const double* rxcellGPU,
       rzij =  (rz - fetch_double(texrzboundaryGPU,particle));
       rzij =  (rzij - int(rzij*invlzGPU + 0.5*((rzij>0)-(rzij<0)))*lzGPU);
       r2 = rxij*rxij + ryij*ryij + rzij*rzij;
-      type_j = pt->types[particle];f =LJ(r2, pt->Aij_param, pt->Bij_param, type_i+ntypesGPU*type_j, nboundaryGPU+i, particle);
+      type_j = pt->types[particle];f =LJ(r2, pt->Aij_param, pt->Bij_param, type_i+ntypesGPU*type_j, type_i, type_j);
       fx += f * rxij;
       fy += f * ryij;
       fz += f * rzij;
@@ -450,7 +450,7 @@ __global__ void kernelSpreadParticlesForceColors(const double* rxcellGPU,
       rzij =  (rz - fetch_double(texrzboundaryGPU,particle));
       rzij =  (rzij - int(rzij*invlzGPU + 0.5*((rzij>0)-(rzij<0)))*lzGPU);
       r2 = rxij*rxij + ryij*ryij + rzij*rzij;
-      type_j = pt->types[particle];f =LJ(r2, pt->Aij_param, pt->Bij_param, type_i+ntypesGPU*type_j, nboundaryGPU+i, particle);
+      type_j = pt->types[particle];f =LJ(r2, pt->Aij_param, pt->Bij_param, type_i+ntypesGPU*type_j, type_i, type_j);
       fx += f * rxij;
       fy += f * ryij;
       fz += f * rzij;
@@ -467,7 +467,7 @@ __global__ void kernelSpreadParticlesForceColors(const double* rxcellGPU,
       rzij =  (rz - fetch_double(texrzboundaryGPU,particle));
       rzij =  (rzij - int(rzij*invlzGPU + 0.5*((rzij>0)-(rzij<0)))*lzGPU);
       r2 = rxij*rxij + ryij*ryij + rzij*rzij;
-      type_j = pt->types[particle];f =LJ(r2, pt->Aij_param, pt->Bij_param, type_i+ntypesGPU*type_j, nboundaryGPU+i, particle);
+      type_j = pt->types[particle];f =LJ(r2, pt->Aij_param, pt->Bij_param, type_i+ntypesGPU*type_j, type_i, type_j);
       fx += f * rxij;
       fy += f * ryij;
       fz += f * rzij;
@@ -484,7 +484,7 @@ __global__ void kernelSpreadParticlesForceColors(const double* rxcellGPU,
       rzij =  (rz - fetch_double(texrzboundaryGPU,particle));
       rzij =  (rzij - int(rzij*invlzGPU + 0.5*((rzij>0)-(rzij<0)))*lzGPU);
       r2 = rxij*rxij + ryij*ryij + rzij*rzij;
-      type_j = pt->types[particle];f =LJ(r2, pt->Aij_param, pt->Bij_param, type_i+ntypesGPU*type_j, nboundaryGPU+i, particle);
+      type_j = pt->types[particle];f =LJ(r2, pt->Aij_param, pt->Bij_param, type_i+ntypesGPU*type_j, type_i, type_j);
       fx += f * rxij;
       fy += f * ryij;
       fz += f * rzij;
@@ -501,7 +501,7 @@ __global__ void kernelSpreadParticlesForceColors(const double* rxcellGPU,
       rzij =  (rz - fetch_double(texrzboundaryGPU,particle));
       rzij =  (rzij - int(rzij*invlzGPU + 0.5*((rzij>0)-(rzij<0)))*lzGPU);
       r2 = rxij*rxij + ryij*ryij + rzij*rzij;
-      type_j = pt->types[particle];f =LJ(r2, pt->Aij_param, pt->Bij_param, type_i+ntypesGPU*type_j, nboundaryGPU+i, particle);
+      type_j = pt->types[particle];f =LJ(r2, pt->Aij_param, pt->Bij_param, type_i+ntypesGPU*type_j, type_i, type_j);
       fx += f * rxij;
       fy += f * ryij;
       fz += f * rzij;
@@ -518,7 +518,7 @@ __global__ void kernelSpreadParticlesForceColors(const double* rxcellGPU,
       rzij =  (rz - fetch_double(texrzboundaryGPU,particle));
       rzij =  (rzij - int(rzij*invlzGPU + 0.5*((rzij>0)-(rzij<0)))*lzGPU);
       r2 = rxij*rxij + ryij*ryij + rzij*rzij;
-      type_j = pt->types[particle];f =LJ(r2, pt->Aij_param, pt->Bij_param, type_i+ntypesGPU*type_j, nboundaryGPU+i, particle);
+      type_j = pt->types[particle];f =LJ(r2, pt->Aij_param, pt->Bij_param, type_i+ntypesGPU*type_j, type_i, type_j);
       fx += f * rxij;
       fy += f * ryij;
       fz += f * rzij;
@@ -535,7 +535,7 @@ __global__ void kernelSpreadParticlesForceColors(const double* rxcellGPU,
       rzij =  (rz - fetch_double(texrzboundaryGPU,particle));
       rzij =  (rzij - int(rzij*invlzGPU + 0.5*((rzij>0)-(rzij<0)))*lzGPU);
       r2 = rxij*rxij + ryij*ryij + rzij*rzij;
-      type_j = pt->types[particle];f =LJ(r2, pt->Aij_param, pt->Bij_param, type_i+ntypesGPU*type_j, nboundaryGPU+i, particle);
+      type_j = pt->types[particle];f =LJ(r2, pt->Aij_param, pt->Bij_param, type_i+ntypesGPU*type_j, type_i, type_j);
       fx += f * rxij;
       fy += f * ryij;
       fz += f * rzij;
@@ -552,7 +552,7 @@ __global__ void kernelSpreadParticlesForceColors(const double* rxcellGPU,
       rzij =  (rz - fetch_double(texrzboundaryGPU,particle));
       rzij =  (rzij - int(rzij*invlzGPU + 0.5*((rzij>0)-(rzij<0)))*lzGPU);
       r2 = rxij*rxij + ryij*ryij + rzij*rzij;
-      type_j = pt->types[particle];f =LJ(r2, pt->Aij_param, pt->Bij_param, type_i+ntypesGPU*type_j, nboundaryGPU+i, particle);
+      type_j = pt->types[particle];f =LJ(r2, pt->Aij_param, pt->Bij_param, type_i+ntypesGPU*type_j, type_i, type_j);
       fx += f * rxij;
       fy += f * ryij;
       fz += f * rzij;
@@ -569,7 +569,7 @@ __global__ void kernelSpreadParticlesForceColors(const double* rxcellGPU,
       rzij =  (rz - fetch_double(texrzboundaryGPU,particle));
       rzij =  (rzij - int(rzij*invlzGPU + 0.5*((rzij>0)-(rzij<0)))*lzGPU);
       r2 = rxij*rxij + ryij*ryij + rzij*rzij;
-      type_j = pt->types[particle];f =LJ(r2, pt->Aij_param, pt->Bij_param, type_i+ntypesGPU*type_j, nboundaryGPU+i, particle);
+      type_j = pt->types[particle];f =LJ(r2, pt->Aij_param, pt->Bij_param, type_i+ntypesGPU*type_j, type_i, type_j);
       fx += f * rxij;
       fy += f * ryij;
       fz += f * rzij;
@@ -586,7 +586,7 @@ __global__ void kernelSpreadParticlesForceColors(const double* rxcellGPU,
       rzij =  (rz - fetch_double(texrzboundaryGPU,particle));
       rzij =  (rzij - int(rzij*invlzGPU + 0.5*((rzij>0)-(rzij<0)))*lzGPU);
       r2 = rxij*rxij + ryij*ryij + rzij*rzij;
-      type_j = pt->types[particle];f =LJ(r2, pt->Aij_param, pt->Bij_param, type_i+ntypesGPU*type_j, nboundaryGPU+i, particle);
+      type_j = pt->types[particle];f =LJ(r2, pt->Aij_param, pt->Bij_param, type_i+ntypesGPU*type_j, type_i, type_j);
       fx += f * rxij;
       fy += f * ryij;
       fz += f * rzij;
@@ -603,7 +603,7 @@ __global__ void kernelSpreadParticlesForceColors(const double* rxcellGPU,
       rzij =  (rz - fetch_double(texrzboundaryGPU,particle));
       rzij =  (rzij - int(rzij*invlzGPU + 0.5*((rzij>0)-(rzij<0)))*lzGPU);
       r2 = rxij*rxij + ryij*ryij + rzij*rzij;
-      type_j = pt->types[particle];f =LJ(r2, pt->Aij_param, pt->Bij_param, type_i+ntypesGPU*type_j, nboundaryGPU+i, particle);
+      type_j = pt->types[particle];f =LJ(r2, pt->Aij_param, pt->Bij_param, type_i+ntypesGPU*type_j, type_i, type_j);
       fx += f * rxij;
       fy += f * ryij;
       fz += f * rzij;

@@ -47,17 +47,18 @@ bool initForcesNonBonded(){
   int ntypes = 1;
   double *Aij_param;
   double *Bij_param;
-  if(false){ //Always reads from the file
+  ifstream in(potentialFile.c_str());
+  if(!in || !readpotential){
+    if(!in && readpotential)
+    printf("WARNING!! INTERACTION FILE %s NOT FOUND\n\tSETTING TO DEFAULT A=48.0, B=24.0\n",
+	   potentialFile.c_str());
     Aij_param = new double;
     Bij_param = new double;
-    //    float sigma, epsilon;
-    //sigma = 2 * lx / float(mx); //READ FROM FILE
-    //epsilon = temperature;
-    *Aij_param = 0.0;//48.0f * pow(sigma,12)*epsilon;
-    *Bij_param = 0.0;// 48.0f * pow(sigma,6)*0.5*epsilon;
+    *Aij_param = 48.0;//48.0f * pow(sigma,12)*epsilon;
+    *Bij_param = 24.0;// 48.0f * pow(sigma,6)*0.5*epsilon;
   }
    else{
-     ifstream in("LJ.in");
+     printf("READING INTERACTION PARAMETERS FROM %s...", potentialFile.c_str());
      in>>ntypes;
      Aij_param = new double[ntypes*ntypes];
      Bij_param = new double[ntypes*ntypes];
@@ -68,6 +69,7 @@ bool initForcesNonBonded(){
      for(int i=0; i<ntypes; i++)for(int j=0; j<ntypes; j++)
 				  in>>Bij_param[i+ntypes*j];
      in>>cutoffnear;
+     printf("\tDONE!\n");
    }
   //!*R Upload all the information to the GPU
   cudaMalloc((void **)&Aij_paramGPU, ntypes*ntypes*sizeof(double));

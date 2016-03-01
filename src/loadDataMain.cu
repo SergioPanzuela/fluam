@@ -43,6 +43,7 @@ const string wbackgroundvelocity="backgroundvelocity";
 const string wsetDevice="setDevice";
 const string wsetparticles="particles";
 const string wsetcolors="colors";
+const string wreadpotential="readpotential";
 const string wparticlesdata="particlesdata";
 string particlesdata;
 const string wsetboundary="boundary";
@@ -174,6 +175,8 @@ bool loadDataMain(int argc, char* argv[]){
   volumeboundaryconst = 8.;
   loadparticles=0;
   loadcolors=0;
+  readpotential=false;
+  potentialFile="LJ.in";
   maxNumberPartInCell = 6;
   maxNumberPartInCellNonBonded = 6;
   cutoff = 0.;
@@ -298,6 +301,10 @@ bool loadDataMain(int argc, char* argv[]){
 
     else if(word==wsetcolors){
       fileinput >> loadcolors;
+    }
+    else if(word==wreadpotential){
+      readpotential = true;
+      fileinput >> potentialFile;
     }
     //NEW_PARAMETER
     else if(word==widentity_prefactor){

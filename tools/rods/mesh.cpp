@@ -29,11 +29,14 @@ readin is read with:
 #define MIN_DIST 4.0
 using namespace std;
 
+
+
 class Rod{
 public: 
-  Rod(int Np, float Lrod, const float *pos, const float *dir){
+  Rod(int Np, float Lrod, const float *pos, const float *dir, int type = 0){
     this->Lrod = Lrod;
     this->Np = Np;
+    this-> type = type;
     rod.resize(3*Np,0);
     fori(0,3)this->pos[i] = pos[i];
     fori(0,Np)
@@ -61,6 +64,7 @@ public:
   void plist(ofstream &out){
     fori(0,Np){
       forj(0,3) out<<rod[3*i+j]<<" ";
+      out<<type;
       out<<"\n";
     }
   }
@@ -76,13 +80,15 @@ public:
   float pos[3];
   float Lrod;
   int Np;
+  int type;
 };
 
 
 class Mesh{
 public:
   Mesh(){}
-  Mesh(int Np, float Nrod, float Lx, float Ly, const float pos[3], const float normal[3], const float dir[3]){
+  Mesh(int Np, float Nrod, float Lx, float Ly, const float pos[3], const float normal[3], const float dir[3], int type=0){
+    this->type = type;
     fori(0,3)this->pos[i] = pos[i];
     fori(0,3)this->normal[i] = normal[i];
     fori(0,3)this->dir[i] = dir[i];
@@ -100,7 +106,7 @@ public:
     float dr = Lx/(float)Nrod;
     forj(0,Nrod){
       fori(0,3) ppos[i] = pos[i] + pdir[i]*dr*(0.5*(float)Nrod-j);
-      mesh.push_back(Rod(Np, Ly, ppos, dir));
+      mesh.push_back(Rod(Np, Ly, ppos, dir, type));
     }
     
 
@@ -128,6 +134,7 @@ public:
   }
 
   void print(ofstream &out){
+    //    cout<<Np<<" "<<Nrod<<endl;
     fori(0,mesh.size()){
       mesh[i].plist(out);
     }
@@ -162,20 +169,22 @@ public:
   float dir[3];
   float Lx, Ly;
   int Np, Nrod, Nbonds, Nt;
+  int type;
 };
 
 
-Mesh random_mesh(int Np, int Nrod, float r0x, float r0y, float Lbox){
+Mesh random_mesh(int Np, int Nrod, float r0x, float r0y, float Lbox, int type = 0){
   unitv3 dir, normal(dir);  
   float pos[3]; fori(0,3) pos[i]=(RANDESP-0.5)*Lbox;
 
-  Mesh a_mesh = Mesh(Np, Nrod, r0x*Nrod, r0y*Np, pos, dir.v, normal.v);
-  if(a_mesh.collides_with_walls(Lbox-1.0)) a_mesh = random_mesh(Np, Nrod, r0x, r0y, Lbox);
+  Mesh a_mesh = Mesh(Np, Nrod, r0x*Nrod, r0y*Np, pos, dir.v, normal.v, type);
+  if(a_mesh.collides_with_walls(Lbox-1.0)) a_mesh = random_mesh(Np, Nrod, r0x, r0y, Lbox, type);
   return a_mesh;
 }
 
 int main(int argc, char *argv[]){
   int Nmesh, Np, Nrod;
+  int Ax=0, Ay=0; //Amplitud of the error in Nx and Ny for the polydisperse case
   float Lx, Ly, k, Lbox;
   
   ifstream readin("read.in");
@@ -191,14 +200,20 @@ int main(int argc, char *argv[]){
 
   vector<Mesh> meshes;
    bool random = false;
-  
+   bool polydisperse = false;
+   bool sp = false; //superpunto output
+
 #define INOP(x,y) if(strcmp(argv[i], x)==0) { y }
   fori(0,argc){
     INOP("--random", random=true;)
+    INOP("--polydisperse", polydisperse = true; Ax = atoi(argv[i+1]); Ay = atoi(argv[i+2]);)
+    INOP("--superpunto", sp = true;)
   }
   #define RAND3(x) rand()%(x-2)+3 
+  #define RANDAB(x,Ax) rand()%(2*Ax)+x-Ax
   
   if(random)  meshes.push_back(random_mesh(RAND3(Np), RAND3(Nrod), r0x, r0y, Lbox));
+  else if(polydisperse) meshes.push_back(random_mesh(RANDAB(Np, Ay), RANDAB(Nrod,Ax), 1.0f, 1.0f, Lbox));
   else  meshes.push_back(random_mesh(Np, Nrod, r0x, r0y, Lbox));
 
   int trycount = 0, count = 0;
@@ -214,7 +229,8 @@ int main(int argc, char *argv[]){
     accepted = true;
     Mesh a_mesh;
 
-    if(random)  a_mesh = random_mesh(RAND3(Np), RAND3(Nrod), r0x, r0y, Lbox);
+    if(random) a_mesh = random_mesh(RAND3(Np), RAND3(Nrod), r0x, r0y, Lbox, (int)meshes.size());
+    else if(polydisperse) a_mesh = random_mesh(RANDAB(Np, Ay), RANDAB(Nrod,Ax), 1.0f, 1.0f, Lbox, (int)meshes.size());
     else a_mesh = random_mesh(Np, Nrod, r0x, r0y, Lbox);
     fori(0, meshes.size()){
       if(meshes[i].collides(a_mesh)){
@@ -240,13 +256,13 @@ int main(int argc, char *argv[]){
 //  printf("Approximate volume fraction: %.3f\n", Nrods*Np*M_PI*(Lx+3.0/4.0)/pow(L,3));
   
   ofstream pout("meshes.pos");
-  #ifndef DEBUG
+  if(!sp){
       int Nt=0;
       fori(0,Nmesh)Nt += meshes[i].Nt;
       pout<<Nt<<"\n";
-  #else
-      pout<<"#L="<<Lbox*0.5<<";\n";
-  #endif
+  }
+  else  pout<<"#L="<<Lbox*0.5<<";\n";
+
   fori(0,Nmesh) meshes[i].print(pout);
   
   ofstream bout("meshes.3bonds");
@@ -263,6 +279,31 @@ int main(int argc, char *argv[]){
     pcount += meshes[i].Nt;
   }
   bout.close();
+
+
+  if(polydisperse){
+    ofstream lj("LJ.in");
+    int Nt = meshes.size();
+    lj<<Nt<<endl;
+    fori(0, Nt){
+      forj(0,Nt){
+	if(i==j)lj<<"0 ";
+	else lj<<"196608 ";
+      }
+      lj<<"\n";
+    }
+    fori(0, Nt){
+      forj(0,Nt){
+	if(i==j)lj<<"0 ";
+	else lj<<"1536 ";
+      }
+      lj<<"\n";
+    }
+    lj<<0<<endl;
+  }
+
+
+
   
   return 0;
 }

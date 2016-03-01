@@ -34,6 +34,8 @@ using namespace std;
 #endif
 
 //NEW_PARAMETER
+EXTERN_GLOBAL bool readpotential;
+EXTERN_GLOBAL string potentialFile;
 EXTERN_GLOBAL double identity_prefactor;
 EXTERN_GLOBAL int setDevice;
 EXTERN_GLOBAL bool setparticles;
