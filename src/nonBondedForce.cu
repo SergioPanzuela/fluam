@@ -22,84 +22,24 @@
 //!*R You can use this function from any scheme, currently used in stokesLimitFunctions and quasiNeutrallyBuoyantFunctions
 __device__ double LJ(double r2, double *Aij, double *Bij, int typeindex, int i, int j){
   if(r2==0.0) return 0.0;  
-  else if(r2>(1.0/invcutoff2GPU)) return 0.0;
+  double rc2 = 1.0f/invcutoff2GPU;
+  if(r2>=rc2) return 0.0;
   if( i/4 == j/4) return 0.0;
   if( i%4==0 && j%4==0){ //Between centers
-      double A = Aij[typeindex];
-      double B = Bij[typeindex];  
-      double r6 = 1.0/(r2*r2*r2);
-      //      return ((A*r6*r6 - B*r6)-(A*1.8817e-06-B*0.0013717))/r2;
-      return (A*r6*r6 - B*r6)/r2;
+    double ep = cutoffnearGPU;
+    double A = Aij[typeindex];
+    double B = Bij[typeindex];  
+    double r6 = 1.0/(r2*r2*r2);
+    return ep*(A*r6*r6-B*r6)/r2;  //F/r   
   }
-  else if((i%4+j%4)>1){ //Between patchys
-    if(r2>(4.1/(9.0*invcutoff2GPU))) return 0.0;
-    int ic = 4*(i/4);//Centers
-    int jc = 4*(j/4);
-
-
-    double rxi =  fetch_double(texrxboundaryGPU,i);
-    double ryi =  fetch_double(texryboundaryGPU,i);
-    double rzi =  fetch_double(texrzboundaryGPU,i);
-
-    
-
-    double rxj =  fetch_double(texrxboundaryGPU,j);
-    double ryj =  fetch_double(texryboundaryGPU,j);
-    double rzj =  fetch_double(texrzboundaryGPU,j);
-
-    double rxij =-(rxi-rxj);
-    double ryij =-(ryi-ryj);
-    double rzij =-(rzi-rzj);
-    double r = sqrt(rxij*rxij+ryij*ryij+rzij*rzij);
-    rxij/=r;    ryij/=r;    rzij/=r;
-    
-    //Centers
-    double rxjc =  fetch_double(texrxboundaryGPU,jc);
-    double ryjc =  fetch_double(texryboundaryGPU,jc);
-    double rzjc =  fetch_double(texrzboundaryGPU,jc);
-
-    double rxic =  fetch_double(texrxboundaryGPU,ic);
-    double ryic =  fetch_double(texryboundaryGPU,ic);
-    double rzic =  fetch_double(texrzboundaryGPU,ic);
-
-
-    
-    double e1x = rxi-rxic;
-    double e1y = ryi-ryic;
-    double e1z = rzi-rzic;
-    double e1mod = sqrt(e1x*e1x+e1y*e1y+e1z*e1z);
-    
-    e1x/=e1mod; e1y/=e1mod; e1z/=e1mod;
-
-
-
-    double e2x = rxj-rxjc;
-    double e2y = ryj-ryjc;
-    double e2z = rzj-rzjc;
-    double e2mod = sqrt(e2x*e2x+e2y*e2y+e2z*e2z);
-    
-    e2x/=e2mod; e2y/=e2mod; e2z/=e2mod;
-
-    double cosang = cutoffnearGPU;
-    double e1r = e1x*rxij + e1y*ryij + e1z*rzij; 
-    double e2r = -(e2x*rxij + e2y*ryij + e2z*rzij); 
-
-    if(e1r>=cosang && e2r>=cosang){
-
-      double A = Aij[typeindex];
-      double B = Bij[typeindex];  
-      double r6 = 1.0/(r2*r2*r2);
-      return (A*r6*r6 - B*r6)/r2;
-    }
-
-    else return 0.0;
+  else if(i%4>0 && j%4>0){ //Between patchys
+    double A = Aij[typeindex];
+    double B = Bij[typeindex];  
+    if(r2>=(B*B)) return 0.0;
+    double r = sqrt(r2);
+    return A*(1-B/r);  //F/r 
   }
-
-
-  
-
-  return 0;
-  
+  return 0.0f;
 }
 
 

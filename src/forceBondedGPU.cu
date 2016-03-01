@@ -16,6 +16,14 @@
 //
 // You should have received a copy of the GNU General Public License
 // along with Fluam. If not, see <http://www.gnu.org/licenses/>.
+__device__ double fene_force(double r, double kk, double k){
+  double r2 = r*r;
+  double ir6 = 1/(r2*r2*r2);
+  double sig6 = 0.010779;
+  double r02 = 0.51*0.51;
+  return k*r02/(r2-r02) + 24.0f*sig6*(sig6*6.0f*ir6*ir6-ir6)/r2; //F/r
+}
+
 
 __device__ void forceBondedThreeParticleGPU(const int i,
 					    double& fx, //Pass by reference
@@ -91,17 +99,22 @@ __device__ void forceBondedThreeParticleGPU(const int i,
 
 
     //p1 is j, p2 is i, p3 is l
-    
+     double fspring_mod;
     if(i==p1){
       fx += ampli * (a3*rij[0]/rij2 - ril[0]/a2);
       fy += ampli * (a3*rij[1]/rij2 - ril[1]/a2);
       fz += ampli * (a3*rij[2]/rij2 - ril[2]/a2);
       
       r = rij1;
-      fx += -kSpring * (1 - r0/r) * (rj[0] - ri[0]);
-      fy += -kSpring * (1 - r0/r) * (rj[1] - ri[1]);
-      fz += -kSpring * (1 - r0/r) * (rj[2] - ri[2]);
+      fspring_mod = -kSpring * (1 - r0/r);
+      //fspring_mod = fene_force(r, r0*r0, kSpring);
+      fx += fspring_mod * (rj[0] - ri[0]);
+      fy += fspring_mod * (rj[1] - ri[1]);
+      fz += fspring_mod * (rj[2] - ri[2]);
       
+      
+
+
     }
     else if(i==p2){
       
@@ -111,17 +124,19 @@ __device__ void forceBondedThreeParticleGPU(const int i,
       
       //First spring
       r = rij1;
-
-      fx += -kSpring * (1 - r0/r) * (ri[0] - rj[0]);
-      fy += -kSpring * (1 - r0/r) * (ri[1] - rj[1]);
-      fz += -kSpring * (1 - r0/r) * (ri[2] - rj[2]);
+      fspring_mod = -kSpring * (1 - r0/r);
+      //fspring_mod = fene_force(r, r0*r0, kSpring);      
+      fx += fspring_mod * (ri[0] - rj[0]);
+      fy += fspring_mod * (ri[1] - rj[1]);
+      fz += fspring_mod * (ri[2] - rj[2]);
       
       //Second spring
       r = ril1;
-
-      fx += -kSpring * (1 - r0/r) * (ri[0] - rl[0]);
-      fy += -kSpring * (1 - r0/r) * (ri[1] - rl[1]);
-      fz += -kSpring * (1 - r0/r) * (ri[2] - rl[2]);
+      fspring_mod = -kSpring * (1 - r0/r);
+      //fspring_mod = fene_force(r, r0*r0, kSpring);      
+      fx += fspring_mod * (ri[0] - rl[0]);
+      fy += fspring_mod * (ri[1] - rl[1]);
+      fz += fspring_mod * (ri[2] - rl[2]);
       
     }
     else if(i==p3){
@@ -130,10 +145,11 @@ __device__ void forceBondedThreeParticleGPU(const int i,
       fz += ampli * (a3*ril[2]/ril2 - rij[2]/a2);
       
       r = ril1;
-
-      fx += -kSpring * (1 - r0/r) * (rl[0] - ri[0]);
-      fy += -kSpring * (1 - r0/r) * (rl[1] - ri[1]);
-      fz += -kSpring * (1 - r0/r) * (rl[2] - ri[2]);
+      fspring_mod = -kSpring * (1 - r0/r);
+      //fspring_mod = fene_force(r, r0*r0, kSpring);      
+      fx += fspring_mod * (rl[0] - ri[0]);
+      fy += fspring_mod * (rl[1] - ri[1]);
+      fz += fspring_mod * (rl[2] - ri[2]);
             
     }
 

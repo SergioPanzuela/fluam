@@ -30,60 +30,74 @@ static ofstream fileVelocityI;
 
 
 bool saveParticles(int option, long long step){
-  fileVelocity.precision(15);  
+  //fileVelocity.precision(15);  
   file.precision(15);  
   //This is for the interpolate velocity
-  fileVelocityI.precision(15);
+  //fileVelocityI.precision(15);
   if(option == 0){
     string savefile;
     savefile = outputname +  ".particles";
     file.open(savefile.c_str());
-    savefile = outputname + ".velocityParticles";
-    fileVelocity.open(savefile.c_str());
-    fileVelocity << "#NUMBER PARTICLES " << np << endl;
+    //savefile = outputname + ".velocityParticles";
+    //  fileVelocity.open(savefile.c_str());
+    // fileVelocity << "#NUMBER PARTICLES " << np << endl;
     
     //This is for the interpolate velocity
+    /*
     if(quasiNeutrallyBuoyant){
       savefile = outputname + ".velocityParticlesI";
       fileVelocityI.open(savefile.c_str());
       fileVelocityI << "#NUMBER PARTICLES " << np << endl;
     }
+    */
   }
   else if(option == 1){
     //!*R small changes to the output layout, adding types
-    file <<"#"<<step * dt<< endl;
-    fileVelocity << step * dt << endl;
+    file <<"#L=16;"<<step * dt<< endl;
+    //fileVelocity << step * dt << endl;
     //This is for the interpolate velocity
+    /*
     if(quasiNeutrallyBuoyant) 
       fileVelocityI << step * dt << endl;
+    */
     for(int i=0;i<np;i++){
       float x,y,z;
-      float L = 128;
+      float L = 32;
+      float Lx = L;
+      float Ly = L;
+      float Lz = L;
+      
       x = rxParticle[i];
       y = ryParticle[i];
       z = rzParticle[i];                                                                                     
-      x /= L;                                                                             
-      y /= L;                                                                             
-      z /= L;                                                                             
-      x-=int( ( (x<0)?-0.5:0.5 ) + x);                                                   
-      y-=int( ( (y<0)?-0.5:0.5 ) + y);                                                   
-      z-=int( ( (z<0)?-0.5:0.5 ) + z);                                                   
-      file << x*L << " " << y*L << " " << z*L<<" "<< ((particle_types[i]==1)?1.2:0.5)<<" "<<particle_types[i]<< endl;
-      //file << x << " " << y << " " << z <<" 0.5 "<<particle_types[i]<< endl;
+      
+      x /= Lx;
+      y /= Ly;                                                                    
+      z /= Lz;                                                                             
+      x -= int( ( (x<0)?-0.5:0.5 ) + x);                                                   
+      y -= int( ( (y<0)?-0.5:0.5 ) + y);                                                   
+      z -= int( ( (z<0)?-0.5:0.5 ) + z);                                                   
+      file << x*Lx << " " << y*Ly << " " << z*Lz<<" "<< ((particle_types[i]==1)?(.56275):0.1)<<" "<<particle_types[i]<< endl;
+      
+      //file << x << " " << y << " " << z <<" "<<((particle_types[i]==1)?(0.5*1.1225):0.1)<<" "<<particle_types[i]<< endl;
 
       //      file << rxParticle[i] << " " << ryParticle[i] << " " << rzParticle[i] <<" "<< particle_types[i]<< endl;
-      fileVelocity << vxParticle[i] << " " << vyParticle[i] << " " << vzParticle[i] << endl;
+      //  fileVelocity << vxParticle[i] << " " << vyParticle[i] << " " << vzParticle[i] << endl;
       //This is for the interpolate velocit
+      /*
       if(quasiNeutrallyBuoyant || quasiNeutrallyBuoyant2D) 
 	fileVelocityI << vxParticleI[i] << " " << vyParticleI[i] << " " << vzParticleI[i] << endl;
+      */
     }
   }
   else if(option == 2){
+    /*
     file.close();
     fileVelocity.close();
     //This is for the interpolate velocity
     if(quasiNeutrallyBuoyant) 
       fileVelocityI.close();
+    */
   }
     
   return 1;
