@@ -138,6 +138,8 @@ const string wincompressibleBinaryMixtureMidPoint="incompressibleBinaryMixtureMi
 //IncompressibleBinaryMixtureMidPoint Ends
 //particlesWall Begins
 const string wparticlesWall="particlesWall";
+//*!R new parameter
+const string wconfinementZ="confinementZ";
 //particlesWall Ends
 //freeEnergyCompressibleParticles Begins
 const string wfreeEnergyCompressibleParticles="freeEnergyCompressibleParticles";
@@ -246,6 +248,8 @@ bool loadDataMain(int argc, char* argv[]){
 
   //particlesWall Begins
   particlesWall = 0;
+  //*!R new parameter
+  confinementZ = 0;
   //particlesWall Ends
 
   //freeEnergyCompressibleParticles Begins
@@ -558,6 +562,12 @@ bool loadDataMain(int argc, char* argv[]){
       particlesWall=1;
       setparticles=1;
     }
+    //*!R new parameter
+    else if(word==wconfinementZ){
+      confinementZ = 1;
+      fileinput >> confinementZK;
+    }
+
     //particlesWall Ends
     //freeEnergyCompressibleParticles Begins
     else if(word==wfreeEnergyCompressibleParticles){

@@ -109,5 +109,5 @@ int main(int argc, char* argv[]){
   }
 
   cout << "END" << endl;
-  return 1;
+  return 0;
 }

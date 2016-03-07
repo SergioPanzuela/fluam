@@ -27,6 +27,10 @@ bool createBoundaries4ptGPU(){
   cutilSafeCall(cudaMemcpyToSymbol(maxNumberPartInCellGPU,&maxNumberPartInCell,sizeof(int)));
   cutilSafeCall(cudaMemcpyToSymbol(maxNumberPartInCellNonBondedGPU,&maxNumberPartInCellNonBonded,sizeof(int)));
   cutilSafeCall(cudaMemcpyToSymbol(particlesWallGPU,&particlesWall,sizeof(bool)));
+  //*!R new parameter
+  cutilSafeCall(cudaMemcpyToSymbol(confinementZGPU,&confinementZ,sizeof(bool)));
+  cutilSafeCall(cudaMemcpyToSymbol(confinementZKGPU,&confinementZK,sizeof(double)));
+
   cudaMemcpyToSymbol(computeNonBondedForcesGPU,&computeNonBondedForces,sizeof(bool));
 
   //Create boundaries and particles variables

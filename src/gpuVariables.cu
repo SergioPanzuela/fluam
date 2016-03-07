@@ -419,5 +419,8 @@ double *rxFixedPointGPU;
 double *ryFixedPointGPU;
 double *rzFixedPointGPU;
 __constant__ bool particlesWallGPU;
+  //*!R new parameter
+__constant__ bool confinementZGPU;
+__constant__ double confinementZKGPU;
 __constant__ bool computeNonBondedForcesGPU;
 

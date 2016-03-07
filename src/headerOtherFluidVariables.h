@@ -95,6 +95,11 @@ EXTERN_OTHER_FLUID_V bool incompressibleBinaryMixtureMidPoint;
 EXTERN_OTHER_FLUID_V bool particlesWall;
 //particlesWall Ends
 
+
+//Confinement Begins
+EXTERN_OTHER_FLUID_V bool confinementZ;
+//Confinement Ends
+
 //testJPS Begins
 EXTERN_OTHER_FLUID_V int testJPS;
 //testJPS Ends

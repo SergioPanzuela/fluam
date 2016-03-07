@@ -65,6 +65,9 @@ __global__ void kernelSpreadParticlesForceColors(const double* rxcellGPU,
   //fz = -0.01*rz;
 
 
+  if(confinementZGPU){
+    fz = confinementZKGPU*rz;
+  }
 
   
   if(particlesWallGPU){
