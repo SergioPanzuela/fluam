@@ -98,6 +98,7 @@ EXTERN_OTHER_FLUID_V bool particlesWall;
 
 //Confinement Begins
 EXTERN_OTHER_FLUID_V bool confinementZ;
+EXTERN_OTHER_FLUID_V double confinementZK;
 //Confinement Ends
 
 //testJPS Begins
