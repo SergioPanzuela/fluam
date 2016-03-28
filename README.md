@@ -1,4 +1,8 @@
 ###About this branch
+This branch **colloids2d** is just the current master branch with modified simpleCubic.cpp to initialize particles in a 2D plane at z=0, also the option confinementZ is available in data.main to confine the particles in z qith fz=k*rz. See data.main
+
+
+
 This branch is only tested with **Stokes limit** and **Quasi Neutrally Buoyant**!!
 
 The **Colors** functionality allows you to stablish a different interaction for every pair based on an assigned particle type. Currently included only for the Stokes Limit and QuasiNeutrallyBuoyant schemes

@@ -1,0 +1,26 @@
+quasiNeutrallyBuoyant
+particles		1
+
+cutoff                  2.24492409661875
+
+maxNumberPartInCellNonBonded    10
+maxNumberPartInCell     	10
+
+densfluid               1
+shearviscosity          1
+temperature             1
+
+cells			128	128	32
+celldimension	   	64.0    64.0	16.0
+
+initfluid 1
+
+numberparticles         2704
+
+confinementZ 		-100.0
+
+numsteps                500000
+samplefreq              100
+dt			0.01
+
+outputname 		run1

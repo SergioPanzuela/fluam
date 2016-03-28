@@ -32,12 +32,12 @@ void simpleCubic(){
 
     nx = (int(lx/sigma) ? int(lx/sigma) : 1);
     ny = (int(ly/sigma) ? int(ly/sigma) : 1);
-    nz = (int(lz/sigma) ? int(lz/sigma) : 1);
-    
+    //    nz = (int(lz/sigma) ? int(lz/sigma) : 1);
+    nz = 1;
     while((nx*ny*nz)<np){
       if((nx*ny*nz)<np) nx++;
       if((nx*ny*nz)<np) ny++;
-      if((nx*ny*nz)<np) nz++;
+      // if((nx*ny*nz)<np) nz++;
     }
 
     dx = lx/double(nx);
@@ -58,7 +58,7 @@ void simpleCubic(){
 		    n = n + 1;
 		    rxParticle[n-1] = (k + 0.5) * dx - lx/2.;
 		    ryParticle[n-1] = (j + 0.5) * dy - ly/2.;
-		    rzParticle[n-1] = (i + 0.5) * dz - lz/2.;
+		    rzParticle[n-1] = 0.0;
 		    //p[n-1].r[0] = (k + 0.5 - nx/2) * dx;
 		    //p[n-1].r[1] = (j + 0.5 - ny/2) * dy;
 		    //p[n-1].r[2] = (i + 0.5 - nz/2) * dz;
