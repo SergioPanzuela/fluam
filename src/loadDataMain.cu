@@ -1,6 +1,6 @@
 // Filename: loadDataMain.cu
 //
-// Copyright (c) 2010-2016, Florencio Balboa Usabiaga
+// Copyright (c) 2010-2015, Florencio Balboa Usabiaga
 //
 // This file is part of Fluam
 //
@@ -42,6 +42,7 @@ const string wsoretCoefficient="soretCoefficient";
 const string wbackgroundvelocity="backgroundvelocity";
 const string wsetDevice="setDevice";
 const string wsetparticles="particles";
+//!*R
 const string wsetcolors="colors";
 const string wparticlesdata="particlesdata";
 string particlesdata;
@@ -61,7 +62,11 @@ const string wnothing="#";
 const string wdt="dt";
 const string wsamplefreq="samplefreq";
 const string wsavefreq="savefreq";
+
 const string wpressureparameters="pressureparameters";
+//!*R shear perturbation parameters
+const string wperturbationparameters="perturbationparameters";
+
 const string woutputname="outputname";
 const string wseed="seed";
 const string wcells="cells";
@@ -86,9 +91,7 @@ const string wsaveFluid="saveFluid";
 const string wsaveVTK="saveVTK";
 const string wbondedForces="bondedForces";
 const string wthreeBondedForces="threeBondedForces";
-const string wbondedForcesVersion="bondedForcesVersion";
 const string wcomputeNonBondedForces="computeNonBondedForces";
-const string wbigSystem="bigSystem";
 
 const string wGhost="ghost";
 //Other Fluid Variables
@@ -138,8 +141,6 @@ const string wincompressibleBinaryMixtureMidPoint="incompressibleBinaryMixtureMi
 //IncompressibleBinaryMixtureMidPoint Ends
 //particlesWall Begins
 const string wparticlesWall="particlesWall";
-//*!R new parameter
-const string wconfinementZ="confinementZ";
 //particlesWall Ends
 //freeEnergyCompressibleParticles Begins
 const string wfreeEnergyCompressibleParticles="freeEnergyCompressibleParticles";
@@ -195,10 +196,8 @@ bool loadDataMain(int argc, char* argv[]){
   nboundary = 0;
   bondedForces=0;
   threeBondedForces = 0;
-  bondedForcesVersion=0;
   computeNonBondedForces=1;
   setVolumeParticle=0;
-  bigSystem=0;
   //DEFAULT PARAMETERS 
 
   //OTHER FLUID VARIABLES
@@ -248,8 +247,6 @@ bool loadDataMain(int argc, char* argv[]){
 
   //particlesWall Begins
   particlesWall = 0;
-  //*!R new parameter
-  confinementZ = 0;
   //particlesWall Ends
 
   //freeEnergyCompressibleParticles Begins
@@ -274,6 +271,14 @@ bool loadDataMain(int argc, char* argv[]){
   setExtraMobility = 0;
   extraMobility = 0;
   //stokesLimit Ends
+
+  //!*R
+  perturbation = false;
+  perturbationPlane = -1;
+  perturbationDir = -1;
+  perturbationA = 0.0;
+  perturbationK = 0.0;
+
 
   
   ifstream fileinput, fileoutput;
@@ -370,6 +375,12 @@ bool loadDataMain(int argc, char* argv[]){
     else if(word==wpressureparameters){
       fileinput >> pressurea0 >> pressurea1 >> pressurea2;
     }
+    //!*R
+    else if(word==wperturbationparameters){
+      perturbation = true;
+      fileinput >> perturbationPlane >> perturbationDir >> perturbationA >> perturbationK;
+    }
+
     else if(word==woutputname){
       fileinput >> outputname;
     }
@@ -459,14 +470,8 @@ bool loadDataMain(int argc, char* argv[]){
       threeBondedForces=1;
       fileinput >> threeBondedForcesFile;
     }
-    else if(word==wbondedForcesVersion){
-      fileinput >> bondedForcesVersion;
-    }
     else if(word==wcomputeNonBondedForces){
       fileinput >> computeNonBondedForces;
-    }
-    else if(word==wbigSystem){
-      fileinput >> bigSystem;
     }
     //Other FLuid Variables
     //Binary Mixture Begins
@@ -562,12 +567,6 @@ bool loadDataMain(int argc, char* argv[]){
       particlesWall=1;
       setparticles=1;
     }
-    //*!R new parameter
-    else if(word==wconfinementZ){
-      confinementZ = 1;
-      fileinput >> confinementZK;
-    }
-
     //particlesWall Ends
     //freeEnergyCompressibleParticles Begins
     else if(word==wfreeEnergyCompressibleParticles){

@@ -1,6 +1,6 @@
 // Filename: header.h
 //
-// Copyright (c) 2010-2016, Florencio Balboa Usabiaga
+// Copyright (c) 2010-2015, Florencio Balboa Usabiaga
 //
 // This file is part of Fluam
 //
@@ -63,7 +63,7 @@ EXTERN_GLOBAL bool setGhost;
 EXTERN_GLOBAL bool setboundary;
 EXTERN_GLOBAL string fileCheckVelocity;
 EXTERN_GLOBAL bool setSaveVTK;
-EXTERN_GLOBAL bool computeNonBondedForces, bigSystem;
+EXTERN_GLOBAL bool computeNonBondedForces;
 
 
 bool loadDataMain(int argc, char* argv[]);
@@ -74,8 +74,6 @@ bool createParticles();
 //NEW bonded forces
 bool initializeBondedForces();
 bool initializeThreeBondedForces();
-bool initializeBondedForcesOldVersion();
-
 bool freeBondedForces();
 bool createBondedForcesGPU();
 bool createThreeBondedForcesGPU();
@@ -301,14 +299,6 @@ bool saveFunctionsSchemeStokesLimit(int index, long long step);
 bool runSchemeStokesLimit();
 bool createCellsStokesLimitGPU();
 bool freeCellsStokesLimitGPU();
-bool freeMemoryStokesLimit();
 
-
-//stokesLimitBigSystem
-bool schemeStokesLimitBigSystem(); 
-bool freeMemoryStokesLimitBigSystem(); 
-bool createBoundariesRK2BigSystemGPU(); 
-bool freeBoundariesRK2BigSystemGPU(); 
-bool runSchemeStokesLimitBigSystem(); 
 
 

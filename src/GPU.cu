@@ -1,6 +1,6 @@
 // Filename: GPU.cu
 //
-// Copyright (c) 2010-2016, Florencio Balboa Usabiaga
+// Copyright (c) 2010-2015, Florencio Balboa Usabiaga
 //
 // This file is part of Fluam
 //
@@ -264,12 +264,5 @@ static __inline__ __device__ double fetch_double(texture<int2,1> t, int i){
 //SchemeStokesLimitFirstOrder
 #include "boundaryParticlesFunctionStokesLimitFirstOrder.cu"
 #include "runSchemeStokesLimitFirstOrder.cu"
-
-//SchemeStokesLimitBigSystem
-#include "createBoundariesRK2BigSystemGPU.cu"
-#include "freeBoundariesRK2BigSystemGPU.cu"
-#include "stokesLimitFunctionsBigSystem.cu"
-#include "boundaryParticlesFunctionStokesLimitBigSystem.cu"
-#include "runSchemeStokesLimitBigSystem.cu"
 
 

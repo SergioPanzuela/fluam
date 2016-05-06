@@ -1,6 +1,6 @@
 // Filename: forceBondedGPU.cu
 //
-// Copyright (c) 2010-2016, Florencio Balboa Usabiaga
+// Copyright (c) 2010-2015, Florencio Balboa Usabiaga
 //
 // This file is part of Fluam
 //
@@ -167,6 +167,10 @@ __device__ void forceBondedParticleParticleGPU(const int i,
   for(int j=0;j<nBonds;j++){
 
     index = bFV->bondsIndexParticleParticleGPU[offset + j];
+
+    //if(i==0) index=1;
+    //if(i==1) index=0;
+
 
     //Particle bonded coordinates
     x = fetch_double(texrxboundaryGPU,nboundaryGPU+index);

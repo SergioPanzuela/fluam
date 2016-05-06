@@ -1,6 +1,6 @@
 // Filename: createCellsIncompressibleGPU.cu
 //
-// Copyright (c) 2010-2016, Florencio Balboa Usabiaga
+// Copyright (c) 2010-2015, Florencio Balboa Usabiaga
 //
 // This file is part of Fluam
 //
@@ -156,6 +156,14 @@ bool createCellsIncompressibleGPU(){
   cutilSafeCall(cudaMemcpyToSymbol(pressurea0GPU,&pressurea0,sizeof(double)));
   cutilSafeCall(cudaMemcpyToSymbol(pressurea1GPU,&pressurea1,sizeof(double)));
   //cutilSafeCall(cudaMemcpyToSymbol(pressurea2GPU,&pressurea2,sizeof(double)));
+
+
+  //!*R upload shear perturbation parameters
+  cutilSafeCall(cudaMemcpyToSymbol(perturbationGPU     ,&perturbation     ,sizeof(bool )));
+  cutilSafeCall(cudaMemcpyToSymbol(perturbationPlaneGPU,&perturbationPlane,sizeof(int  )));
+  cutilSafeCall(cudaMemcpyToSymbol(perturbationDirGPU  ,&perturbationDir  ,sizeof(int  )));
+  cutilSafeCall(cudaMemcpyToSymbol(perturbationAGPU    ,&perturbationA    ,sizeof(float)));
+  cutilSafeCall(cudaMemcpyToSymbol(perturbationKGPU    ,&perturbationK    ,sizeof(float)));
 
 
   cout << "CREATE CELLS GPU :              DONE" << endl;

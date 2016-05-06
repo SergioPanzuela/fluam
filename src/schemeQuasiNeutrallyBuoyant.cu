@@ -1,6 +1,6 @@
 // Filename: schemeQuasiNeutrallyBuoyant.cu
 //
-// Copyright (c) 2010-2016, Florencio Balboa Usabiaga
+// Copyright (c) 2010-2015, Florencio Balboa Usabiaga
 //
 // This file is part of Fluam
 //
@@ -42,7 +42,7 @@ bool schemeQuasiNeutrallyBuoyant(){
     if(!initializeBondedForces()) return 0;
   if(threeBondedForces)
     if(!initializeThreeBondedForces()) return 0;
-
+  
   //Initialize the fluid
   if(!initializeFluid()) return 0;
 

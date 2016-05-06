@@ -1,6 +1,6 @@
 // Filename: saveParticles.cu
 //
-// Copyright (c) 2010-2016, Florencio Balboa Usabiaga
+// Copyright (c) 2010-2015, Florencio Balboa Usabiaga
 //
 // This file is part of Fluam
 //
@@ -54,10 +54,26 @@ bool saveParticles(int option, long long step){
     file <<"#"<<step * dt<< endl;
     fileVelocity << step * dt << endl;
     //This is for the interpolate velocity
+    float x,y,z;
     if(quasiNeutrallyBuoyant) 
       fileVelocityI << step * dt << endl;
     for(int i=0;i<np;i++){
-      file << rxParticle[i] << " " << ryParticle[i] << " " << rzParticle[i] <<" "<< particle_types[i]<< endl;
+      x = rxParticle[i];
+      y = ryParticle[i];
+      z = rzParticle[i];
+     
+      /* 
+      x /= 35.0;
+      y /= 35.0;
+      z /= 35.0;
+     
+      x-=int( ( (x<0)?-0.5:0.5 ) + x);
+      y-=int( ( (y<0)?-0.5:0.5 ) + y);
+      z-=int( ( (z<0)?-0.5:0.5 ) + z);
+
+      file << x << " " << y << " " << z <<" "<< 1/35.0<<" "<<particle_types[i]<< endl;
+      */
+      file << x << " " << y << " " << z <<" 0.5 "<<particle_types[i]<< endl;
       fileVelocity << vxParticle[i] << " " << vyParticle[i] << " " << vzParticle[i] << endl;
       //This is for the interpolate velocit
       if(quasiNeutrallyBuoyant || quasiNeutrallyBuoyant2D) 

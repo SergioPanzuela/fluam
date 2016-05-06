@@ -1,6 +1,6 @@
 // Filename: fluid.h
 //
-// Copyright (c) 2010-2016, Florencio Balboa Usabiaga
+// Copyright (c) 2010-2015, Florencio Balboa Usabiaga
 //
 // This file is part of Fluam
 //
@@ -33,4 +33,13 @@ EXTERN_FLUID double pressurea1;
 EXTERN_FLUID double pressurea2;
 EXTERN_FLUID double densityConst, dDensity, omega;
 EXTERN_FLUID int initfluid;
+
+
+EXTERN_FLUID bool  perturbation;
+EXTERN_FLUID int   perturbationPlane;
+EXTERN_FLUID int   perturbationDir;
+EXTERN_FLUID float perturbationA;
+EXTERN_FLUID float perturbationK;   
+
+
 //EXTERN_FLUID double concentration;

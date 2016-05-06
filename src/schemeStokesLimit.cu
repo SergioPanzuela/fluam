@@ -1,6 +1,6 @@
 // Filename: schemeStokesLimit.cu
 //
-// Copyright (c) 2010-2016, Florencio Balboa Usabiaga
+// Copyright (c) 2010-2015, Florencio Balboa Usabiaga
 //
 // This file is part of Fluam
 //
@@ -95,7 +95,7 @@ bool schemeStokesLimit(){
     if(!freeParticles()) return 0;
 
   //Free memory
-  if(!freeMemoryStokesLimit()) return 0;
+  if(!freeMemoryQuasiNeutrallyBuoyant()) return 0;
   
   
   return 1;

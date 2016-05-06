@@ -1,6 +1,6 @@
 // Filename: headerOtherFluidVariables.h
 //
-// Copyright (c) 2010-2016, Florencio Balboa Usabiaga
+// Copyright (c) 2010-2015, Florencio Balboa Usabiaga
 //
 // This file is part of Fluam
 //
@@ -94,12 +94,6 @@ EXTERN_OTHER_FLUID_V bool incompressibleBinaryMixtureMidPoint;
 //particlesWall Begins
 EXTERN_OTHER_FLUID_V bool particlesWall;
 //particlesWall Ends
-
-
-//Confinement Begins
-EXTERN_OTHER_FLUID_V bool confinementZ;
-EXTERN_OTHER_FLUID_V double confinementZK;
-//Confinement Ends
 
 //testJPS Begins
 EXTERN_OTHER_FLUID_V int testJPS;

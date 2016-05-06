@@ -1,6 +1,6 @@
 // Filename: initForcesNonBonded.cu
 //
-// Copyright (c) 2010-2016, Florencio Balboa Usabiaga
+// Copyright (c) 2010-2015, Florencio Balboa Usabiaga
 //
 // This file is part of Fluam
 //
@@ -28,9 +28,9 @@ float functionForceNonBonded1(double r){
 
 }
 float functionForceNonBonded1(double r, double a, double b){
-  float sigma, epsilon;
-  sigma = 2 * lx / double(mx);
-  epsilon = temperature ;
+  //  float sigma, epsilon;
+  //sigma = 2 * lx / double(mx);
+  //epsilon = temperature ;
   //return -epsilon * ( r - sigma);
   return (a*pow(1.0/r,12) - b*pow(1.0/r,6))/r;
 }
@@ -47,38 +47,28 @@ bool initForcesNonBonded(){
   int ntypes = 1;
   double *Aij_param;
   double *Bij_param;
-  if(false/* || loadparticles==0*/){ //Always reads from the file
-    Aij_param = new double[ntypes*ntypes];
-    Bij_param = new double[ntypes*ntypes];
-    for(int i=0; i<ntypes; i++){
-      for(int j=0; j<ntypes; j++){
-        float sigma, epsilon;
-        sigma = 2 * lx / float(mx); //READ FROM FILE
-        epsilon = temperature;
-	Aij_param[i+ntypes*j] = 48.0f * pow(sigma,12)*epsilon;
-        Bij_param[i+ntypes*j] = 48.0f * pow(sigma,6)*0.5*epsilon;
-      }
-    }
+  if(false){ //Always reads from the file
+    Aij_param = new double;
+    Bij_param = new double;
+    //    float sigma, epsilon;
+    //sigma = 2 * lx / float(mx); //READ FROM FILE
+    //epsilon = temperature;
+    *Aij_param = 0.0;//48.0f * pow(sigma,12)*epsilon;
+    *Bij_param = 0.0;// 48.0f * pow(sigma,6)*0.5*epsilon;
   }
    else{
      ifstream in("LJ.in");
      in>>ntypes;
      Aij_param = new double[ntypes*ntypes];
      Bij_param = new double[ntypes*ntypes];
-     float sigma, epsilon;
-     sigma = 2 * lx / float(mx); //READ FROM FILE
-     epsilon = 1;
-	
-     for(int i=0; i<ntypes; i++)for(int j=0; j<ntypes; j++){
-        in>>Aij_param[i+ntypes*j];
-      }
+     for(int i=0; i<ntypes; i++)for(int j=0; j<ntypes; j++)
+				  in>>Aij_param[i+ntypes*j];
      
-     for(int i=0; i<ntypes; i++)for(int j=0; j<ntypes; j++){
-        in>>Bij_param[i+ntypes*j];
-      }
      
+     for(int i=0; i<ntypes; i++)for(int j=0; j<ntypes; j++)
+				  in>>Bij_param[i+ntypes*j];
      in>>cutoffnear;
-}
+   }
   //!*R Upload all the information to the GPU
   cudaMalloc((void **)&Aij_paramGPU, ntypes*ntypes*sizeof(double));
   cudaMalloc((void **)&Bij_paramGPU, ntypes*ntypes*sizeof(double));

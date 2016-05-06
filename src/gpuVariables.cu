@@ -1,6 +1,6 @@
 // Filename: gpuVariables.cu
 //
-// Copyright (c) 2010-2016, Florencio Balboa Usabiaga
+// Copyright (c) 2010-2015, Florencio Balboa Usabiaga
 //
 // This file is part of Fluam
 //
@@ -122,6 +122,14 @@ __constant__ double cutoffnearGPU; //!*R A constant to avoid overlapping
 
 particle_type *pt;
 
+//!*R shear parameters, look in kernelConstructQuasiNeutrallyBuoyant.cu line 1473
+__constant__ bool perturbationGPU;
+__constant__ int perturbationPlaneGPU;
+__constant__ int perturbationDirGPU;
+__constant__ float perturbationAGPU;
+__constant__ float perturbationKGPU;
+
+
 
 
 __constant__ int mxGPU, myGPU, mzGPU;
@@ -162,6 +170,9 @@ double *fx3GPU, *fy3GPU, *fz3GPU;
 
 
 
+
+
+
 //Binary Mixture
 double *cGPU, *cPredictionGPU, *dcGPU;
 
@@ -177,6 +188,10 @@ __constant__ double pressurea0GPU;
 __constant__ double pressurea1GPU;
 __constant__ double pressurea2GPU;
 __constant__ double densfluidGPU;
+
+
+
+
 
 __constant__ double fact1GPU, fact2GPU, fact3GPU, fact4GPU;
 __constant__ double fact5GPU, fact6GPU, fact7GPU;
@@ -237,7 +252,6 @@ long long *stepGPU;
 __constant__ double densityConstGPU, dDensityGPU;
 
 vecinos *vec;
-vecinos *pVecinos, *pNeighbors;
 fvec *fb;
 particlesincell *pc;
 
@@ -419,8 +433,5 @@ double *rxFixedPointGPU;
 double *ryFixedPointGPU;
 double *rzFixedPointGPU;
 __constant__ bool particlesWallGPU;
-  //*!R new parameter
-__constant__ bool confinementZGPU;
-__constant__ double confinementZKGPU;
 __constant__ bool computeNonBondedForcesGPU;
 

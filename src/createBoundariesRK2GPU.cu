@@ -1,6 +1,6 @@
 // Filename: createBoundariesRK2GPU.cu
 //
-// Copyright (c) 2010-2016, Florencio Balboa Usabiaga
+// Copyright (c) 2010-2015, Florencio Balboa Usabiaga
 //
 // This file is part of Fluam
 //
@@ -26,10 +26,6 @@ bool createBoundariesRK2GPU(){
   cudaMemcpyToSymbol(npGPU,&np,sizeof(int));
   cutilSafeCall(cudaMemcpyToSymbol(maxNumberPartInCellGPU,&maxNumberPartInCell,sizeof(int)));
   cutilSafeCall(cudaMemcpyToSymbol(maxNumberPartInCellNonBondedGPU,&maxNumberPartInCellNonBonded,sizeof(int)));
-  //*!R new parameter
-  cutilSafeCall(cudaMemcpyToSymbol(confinementZGPU,&confinementZ,sizeof(bool)));
-  cutilSafeCall(cudaMemcpyToSymbol(confinementZKGPU,&confinementZK,sizeof(double)));
-
   cutilSafeCall(cudaMemcpyToSymbol(particlesWallGPU,&particlesWall,sizeof(bool)));
   cudaMemcpyToSymbol(computeNonBondedForcesGPU,&computeNonBondedForces,sizeof(bool));
 

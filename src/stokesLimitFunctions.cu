@@ -1,6 +1,6 @@
 // Filename: stokesLimitFunctions.cu
 //
-// Copyright (c) 2010-2016, Florencio Balboa Usabiaga
+// Copyright (c) 2010-2015, Florencio Balboa Usabiaga
 //
 // This file is part of Fluam
 //
@@ -56,8 +56,9 @@ __global__ void findNeighborParticlesStokesLimit_1(particlesincell* pc,
     errorKernel[4] = 1;
     return;
   }
-
   pc->partInCellNonBonded[mNeighborsGPU*np+icel] = i;
+
+
 
 }
 
@@ -2765,8 +2766,9 @@ __global__ void updateParticlesStokesLimit_1(particlesincell* pc,
     errorKernel[4] = 1;
     return;
   }
-
   pc->partInCellNonBonded[mNeighborsGPU*np+icel] = i;
+
+
 
 }
 
@@ -3766,7 +3768,10 @@ __global__ void kernelConstructWstokesLimit_2(const double *vxGPU, //Stored fx=S
   vz = fetch_double(texVzGPU,i);
 
   //Stored fx=S*Fx+S*drift_p-S*drift_m
-  wx = vx;
+  //  wx = vx;
+  double pi2 = 6.28318530717958648;
+  double perturbation = pressurea1GPU * sin(pi2 *pressurea0GPU* ((i/(mxGPU*mytGPU))-0.5*mzGPU+0.5) / double(mzGPU));
+  wx = vx - perturbation; 
   wy = vy;
   wz = vz;
 

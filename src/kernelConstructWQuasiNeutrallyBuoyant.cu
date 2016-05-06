@@ -1,6 +1,6 @@
 // Filename: kernelConstructWQuasiNeutrallyBuoyant.cu
 //
-// Copyright (c) 2010-2016, Florencio Balboa Usabiaga
+// Copyright (c) 2010-2015, Florencio Balboa Usabiaga
 //
 // This file is part of Fluam
 //
@@ -1450,10 +1450,46 @@ __global__ void kernelConstructWQuasiNeutrallyBuoyantTEST5_3(const double *vxPre
   wz += invdzGPU * invdzGPU * (vz5 - 2*vz + vz0);
   wz  = 0.5 * dtGPU * (shearviscosityGPU/densfluidGPU) * wz;
 
+  
+  //double perturbation = pressurea1GPU * sin(pi2 *pressurea0GPU* ((i/(mxGPU*mytGPU))-0.5*mzGPU+0.5) / double(mzGPU));
+  
+  //  int icx = i%mxGPU; 
+  //int icy = (i%(mxGPU*mytGPU)) /mxGPU;
+  //int icz = i/(mxGPU*mytGPU);
+  /*
+  float fluidpos[3];
+  fluidpos[0] = (icx-0.5*mxGU+0.5)/(float)mxGPU;
+  fluidpos[1] = (icy-0.5*mytGU+0.5)/(float)mytGPU;
+  fluidpos[2] = (icz-0.5*mzGU+0.5)/(float)mzGPU;
+  */
+  //  planeGPU=2;
+  //dir=0;
+  //  for(int plane=0; plane<3; plane++) perturbation[plane] = 0.0;
+
+  //  perturbation[planeGPU] = shearAGPU * sin(pi2*shearKGPU* fluidpos[dirGPU]);
+
+
+
+  if(perturbationGPU){
+    float posfluid = 0.0;
+    int ic;
+    switch(perturbationPlaneGPU){
+    case 0: ic = i%mxGPU;                    posfluid = (ic-0.5*mxGPU+0.5)/(float)mxGPU;    break;
+    case 1: ic = (i%(mxGPU*mytGPU)) /mxGPU;  posfluid = (ic-0.5*mytGPU+0.5)/(float)mytGPU;  break;
+    case 2: ic = i/(mxGPU*mytGPU);           posfluid = (ic-0.5*mzGPU+0.5)/(float)mzGPU;    break;
+    }
+    double pi2 = 6.28318530717958648;
+    switch(perturbationDirGPU){
+    case 0: wx -= perturbationAGPU * sin(pi2*perturbationKGPU* posfluid); break;
+    case 1: wy -= perturbationAGPU * sin(pi2*perturbationKGPU* posfluid); break;
+    case 2: wz -= perturbationAGPU * sin(pi2*perturbationKGPU* posfluid); break;
+    }
+  }
   //Previous Velocity
-  wx += vx ;//- pressurea1GPU * dtGPU;//* 0.267261241912424385 * dtGPU;
-  wy += vy ;//- pressurea1GPU * 0.534522483824848769 * dtGPU;
-  wz += vz ;//- pressurea1GPU * 0.801783725737273154 * dtGPU;
+  
+  wx += vx;
+  wy += vy;
+  wz += vz;
   
   //Advection part
   double advX, advY, advZ;

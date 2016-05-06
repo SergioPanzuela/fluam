@@ -1,6 +1,6 @@
 // Filename: nonBondedForce.cu
 //
-// Copyright (c) 2010-2016, Florencio Balboa Usabiaga
+// Copyright (c) 2010-2015, Florencio Balboa Usabiaga
 //
 // This file is part of Fluam
 //
@@ -23,11 +23,17 @@
 __device__ double LJ(double r2, double *Aij, double *Bij, int typeindex, int i, int j){
   if(r2==0.0) return 0.0;  
   else if(r2>(1.0/invcutoff2GPU)) return 0.0;
-  double A = Aij[typeindex];
-  double B = Bij[typeindex];
+  if(i/15==j/15) return 0.0;
+
+    /*
+  int type_j = typeindex/ntypesGPU;
+  int type_i = typeindex-ntypesGPU*type_j;
+  if(type_i==type_j) return 0.0;
+    */
+  double A = Aij[0];
+  double B = Bij[0];
   double r6 = 1.0/(r2*r2*r2);
-  return (A*r6*r6 - B*r6)/r2;
-  
+  return (A*r6*r6-B*r6)/r2;
 }
 
 
