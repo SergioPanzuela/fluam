@@ -78,7 +78,8 @@ NVCCINCLS +=
 #
 #
 #Libraries -lfftw3 -lfftw3f
-LIBRARIES = -L/usr/local/cuda/lib64 -lcurand -L/usr/lib64/ -L./ -lgfortran -lcufft -lm -lfftw3 -lfftw3f
+#LIBRARIES = -L/usr/local/cuda/lib64 -lcurand -L/usr/lib64/ -L./ -lgfortran -lcufft -lm -lfftw3 -lfftw3f
+LIBRARIES = -L/usr/local/cuda/lib64 -lcurand -L/usr/lib64/ -L./ -lgfortran -lcufft -lm -L../../fftw-3.3.6-pl2/lib/lib -lfftw3
 STATIC_LIBRARIES = 
 
 #
@@ -91,11 +92,11 @@ HydroAnalisysINCL = -I$(SRC_HYDROLIB)
 STATIC_LIBRARIES += -L$(SRC_HYDROLIB) -lCallHydroGrid -L$(SRC_HYDROLIB) -lHydroAnalysis
 
 # Add python
-STATIC_LIBRARIES += -lpython2.7
+STATIC_LIBRARIES += -lpython2.6
 # STATIC_LIBRARIES += -lutil -L/usr/local/stow/python-2.7/lib/python2.7/config/ -lpython2.7
 
 BOOST_LIB = /usr/lib64/boost
-LIBRARIES += -L$(BOOST_LIB) -lboost_python 
+LIBRARIES += -L$(BOOST_LIB) -lboost_python  $(SRC_HYDROLIB)/FFTW.o
 endif
 
 
