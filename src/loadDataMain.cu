@@ -711,6 +711,8 @@ bool loadDataMain(int argc, char* argv[]){
   }
   fileinput.close();
 
+  viscosityMeasureAmplitude *= dt/densfluid;
+  
   //Save wordfile
   string fileOutName;
   fileOutName = outputname + ".data.main";
