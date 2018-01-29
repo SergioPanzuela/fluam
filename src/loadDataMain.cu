@@ -86,9 +86,10 @@ const string wsaveVTK="saveVTK";
 const string wbondedForces="bondedForces";
 const string wbondedForcesVersion="bondedForcesVersion";
 const string wcomputeNonBondedForces="computeNonBondedForces";
-//Raul added, a saffman cut off wave number is now a possible input for quasi2D, which will change the kernel to 1/(k*(k+kc)). Also added viscosity measure amplitude (amplitude of the sinusoidal perturbation). Also add layer width for PBC saffman correction
+//Raul added, a saffman cut off wave number is now a possible input for quasi2D, which will change the kernel to 1/(k*(k+kc)). Also added viscosity measure amplitude (amplitude of the sinusoidal perturbation). Also add layer width for PBC saffman correction. Viscosity measure allows to specify also the frequency and direction of the shear flow.
 const string wsaffmanCutOffWaveNumber="saffmanCutOffWaveNumber";
 const string wviscosityMeasureAmplitude="viscosityMeasureAmplitude";
+const string wviscosityMeasure="viscosityMeasure";
 const string wsaffmanLayerWidth="saffmanLayerWidth";
 
 const string wGhost="ghost";
@@ -210,6 +211,12 @@ bool loadDataMain(int argc, char* argv[]){
   saffmanCutOffWaveNumber=0.0;
   viscosityMeasureAmplitude = 0.0;
   saffmanLayerWidth = 0.0;
+
+  //Raul Added. Viscosity measure parameters
+  viscosityMeasureMode = 0.0;
+  viscosityMeasurePlane = 0.0;
+  viscosityMeasureDir = 0.0;
+
   //DEFAULT PARAMETERS 
 
   //OTHER FLUID VARIABLES
@@ -337,7 +344,11 @@ bool loadDataMain(int argc, char* argv[]){
     else if(word==wviscosityMeasureAmplitude){
       fileinput >> viscosityMeasureAmplitude;
     }
-    
+
+    else if(word==wviscosityMeasure){
+      fileinput >> viscosityMeasurePlane >> viscosityMeasureDir >> viscosityMeasureAmplitude >> viscosityMeasureMode;
+    }
+
     else if(word==widentity_prefactor){
       fileinput >> identity_prefactor;
     }

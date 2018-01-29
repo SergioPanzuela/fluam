@@ -36,5 +36,12 @@ EXTERN_FLUID int initfluid;
 //EXTERN_FLUID double concentration;
 //Raul added. Saffman cut off wave number for quasi2D kernel and viscosity measure for quasi2D run scheme.
 EXTERN_FLUID double saffmanCutOffWaveNumber;
-EXTERN_FLUID double viscosityMeasureAmplitude;
 EXTERN_FLUID double saffmanLayerWidth;
+
+EXTERN_FLUID double viscosityMeasureAmplitude;
+EXTERN_FLUID double viscosityMeasureMode;
+EXTERN_FLUID int viscosityMeasurePlane;
+EXTERN_FLUID int viscosityMeasureDir;
+
+
+

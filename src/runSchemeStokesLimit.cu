@@ -180,7 +180,8 @@ bool runSchemeStokesLimit(){
 					 numBlocks,
 					 threadsPerBlock);
 
-    
+
+
     //STEP 2
     //Construct W=S*F + noise 
     kernelConstructWstokesLimit<<<numBlocks,threadsPerBlock>>>(vxGPU, //Stored fx=S*Fx
@@ -191,6 +192,18 @@ bool runSchemeStokesLimit(){
 							       vzZ,
 							       dRand,
 							       sqrt(2));
+
+   
+     //Add external forces
+    //Raul added, call to shear flow kernel, this sums a sinusoidal force to each fluid cell.
+    if(viscosityMeasureAmplitude != 0.0){
+      
+      addShearFlowStokesLimit<<<numBlocks, threadsPerBlock>>>(vxZ, vyZ, vzZ,
+							      viscosityMeasureAmplitude,
+							      viscosityMeasureMode,
+							      viscosityMeasurePlane,
+							      viscosityMeasureDir);
+    }
 
     
     //STEP 3
@@ -228,7 +241,6 @@ bool runSchemeStokesLimit(){
 					 threadsPerBlockParticles,
 					 numBlocks,
 					 threadsPerBlock);
-
     //STEP 5
     //Construct W=S*F + noise + thermal drift
     kernelConstructWstokesLimit_2<<<numBlocks,threadsPerBlock>>>(vxGPU, //Stored fx=S*Fx+S*drift_p-S*drift_m
@@ -239,6 +251,19 @@ bool runSchemeStokesLimit(){
 								 vzZ,
 								 dRand,
 								 sqrt(0.5));
+
+    
+    //Add external forces
+    //Raul added, call to shear flow kernel, this sums a sinusoidal force to each fluid cell.
+    if(viscosityMeasureAmplitude != 0.0){
+      
+      addShearFlowStokesLimit<<<numBlocks, threadsPerBlock>>>(vxZ, vyZ, vzZ,
+							      viscosityMeasureAmplitude,
+							      viscosityMeasureMode,
+							      viscosityMeasurePlane,
+							      viscosityMeasureDir);
+    }
+
 
     //STEP 6
     //Solve fluid velocity field
