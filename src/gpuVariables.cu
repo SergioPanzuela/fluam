@@ -26,6 +26,10 @@
 //DATA FOR EACH CELL: 26 INT + 10 DOUBLE = 144 B
 //DATA FOR EACH BOUNDARY: 1 INT + 34 DOUBLE = 140 B
 
+//Raul Added. GPU version of Saffman cut off
+__constant__ double saffmanCutOffWaveNumberGPU;
+__constant__ double saffmanLayerWidthGPU;
+
 typedef struct{
   int* vecino0GPU;
   int* vecino1GPU;
@@ -423,4 +427,5 @@ __constant__ bool particlesWallGPU;
 __constant__ bool confinementZGPU;
 __constant__ double confinementZKGPU;
 __constant__ bool computeNonBondedForcesGPU;
-
+__constant__ int kernelWidthGPU, nDriftGPU;
+__constant__ double GaussianVarianceGPU, deltaRFDGPU;

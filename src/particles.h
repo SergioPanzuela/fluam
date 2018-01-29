@@ -52,6 +52,7 @@ EXTERN_PARTICLES bool loadcolors;
 EXTERN_PARTICLES double cutoff;
 EXTERN_PARTICLES int numNeighbors;
 EXTERN_PARTICLES bool setVolumeParticle;
+EXTERN_PARTICLES int greenStart, greenEnd;
 //EXTERN_PARTICLES int nparticles;
 
 //NEW bonded forces

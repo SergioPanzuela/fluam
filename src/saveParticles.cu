@@ -38,10 +38,14 @@ bool saveParticles(int option, long long step){
     string savefile;
     savefile = outputname +  ".particles";
     file.open(savefile.c_str());
-    savefile = outputname + ".velocityParticles";
-    fileVelocity.open(savefile.c_str());
-    fileVelocity << "#NUMBER PARTICLES " << np << endl;
-    
+    file << "#NUMBER PARTICLES " << np << endl;
+
+    if(!(stokesLimitFirstOrder or stokesLimitFirstOrder or quasi2D)){
+      savefile = outputname + ".velocityParticles";
+      fileVelocity.open(savefile.c_str());
+      fileVelocity << "#NUMBER PARTICLES " << np << endl;
+    }
+
     //This is for the interpolate velocity
     if(quasiNeutrallyBuoyant){
       savefile = outputname + ".velocityParticlesI";
@@ -57,8 +61,10 @@ bool saveParticles(int option, long long step){
     if(quasiNeutrallyBuoyant) 
       fileVelocityI << step * dt << endl;
     for(int i=0;i<np;i++){
-      file << rxParticle[i] << " " << ryParticle[i] << " " << rzParticle[i] <<" "<< particle_types[i]<< endl;
-      fileVelocity << vxParticle[i] << " " << vyParticle[i] << " " << vzParticle[i] << endl;
+      file << rxParticle[i] << " " << ryParticle[i] << " " << rzParticle[i] << endl;
+      if(!(stokesLimitFirstOrder or stokesLimitFirstOrder or quasi2D)){
+	fileVelocity << vxParticle[i] << " " << vyParticle[i] << " " << vzParticle[i] << endl;
+      }
       //This is for the interpolate velocit
       if(quasiNeutrallyBuoyant || quasiNeutrallyBuoyant2D) 
 	fileVelocityI << vxParticleI[i] << " " << vyParticleI[i] << " " << vzParticleI[i] << endl;
@@ -66,7 +72,9 @@ bool saveParticles(int option, long long step){
   }
   else if(option == 2){
     file.close();
-    fileVelocity.close();
+    if(!(stokesLimitFirstOrder or stokesLimitFirstOrder or quasi2D)){
+      fileVelocity.close();
+    }
     //This is for the interpolate velocity
     if(quasiNeutrallyBuoyant) 
       fileVelocityI.close();

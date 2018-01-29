@@ -17,7 +17,6 @@
 // You should have received a copy of the GNU General Public License
 // along with Fluam. If not, see <http://www.gnu.org/licenses/>.
 
-
 #include "header.h"
 #include "cells.h"
 #include "fluid.h"
@@ -206,7 +205,6 @@ static __inline__ __device__ double fetch_double(texture<int2,1> t, int i){
 #include "firstStepQuasiNeutrallyBuoyant4pt2D.cu"
 #include "runSchemeQuasiNeutrallyBuoyant4pt2D.cu"
 
-
 //SchemeCompressibleParticles
 #include "calculateVelocityAtHalfTimeStepCompressibleParticles.cu"
 #include "nonBondedForceCompressibleParticles.cu"
@@ -278,11 +276,23 @@ static __inline__ __device__ double fetch_double(texture<int2,1> t, int i){
 #include "boundaryParticlesFunctionStokesLimitFirstOrder.cu"
 #include "runSchemeStokesLimitFirstOrder.cu"
 
+
 //SchemeStokesLimitBigSystem
 #include "createBoundariesRK2BigSystemGPU.cu"
 #include "freeBoundariesRK2BigSystemGPU.cu"
 #include "stokesLimitFunctionsBigSystem.cu"
 #include "boundaryParticlesFunctionStokesLimitBigSystem.cu"
 #include "runSchemeStokesLimitBigSystem.cu"
+
+
+//SchemeQuasi2D
+// #include "boundaryParticlesFunctionQuasi2D.cu"
+#include "createCellsQuasi2DGPU.cu"
+#include "freeCellsQuasi2DGPU.cu"
+#include "createBoundariesQuasi2DGPU.cu"
+#include "freeBoundariesQuasi2DGPU.cu"
+#include "quasi2DFunctions.cu"
+#include "texturesCellsQuasi2D.cu"
+#include "runSchemeQuasi2D.cu"
 
 

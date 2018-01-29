@@ -1,6 +1,6 @@
 // Filename: header.h
 //
-// Copyright (c) 2010-2016, Florencio Balboa Usabiaga
+// Copyright (c) 2010-2017, Florencio Balboa Usabiaga
 //
 // This file is part of Fluam
 //
@@ -26,6 +26,10 @@
 #include <math.h>
 
 using namespace std;
+namespace space_saveFluidVTK{
+  bool saveFluidVTK(int option);
+}
+using namespace space_saveFluidVTK;
 
 #ifdef GLOBAL
 #define EXTERN_GLOBAL
@@ -41,7 +45,7 @@ EXTERN_GLOBAL bool thermostat;
 EXTERN_GLOBAL double dt;
 EXTERN_GLOBAL long long numsteps;
 EXTERN_GLOBAL long long numstepsRelaxation;
-EXTERN_GLOBAL int samplefreq, savefreq;
+EXTERN_GLOBAL int samplefreq, savefreq, sampleHydroGrid;
 EXTERN_GLOBAL string outputname;
 EXTERN_GLOBAL bool savedensity;
 EXTERN_GLOBAL int nsavedensity;
@@ -63,7 +67,11 @@ EXTERN_GLOBAL bool setGhost;
 EXTERN_GLOBAL bool setboundary;
 EXTERN_GLOBAL string fileCheckVelocity;
 EXTERN_GLOBAL bool setSaveVTK;
-EXTERN_GLOBAL bool computeNonBondedForces, bigSystem;
+
+
+EXTERN_GLOBAL bool computeNonBondedForces, use_RFD, bigSystem;
+EXTERN_GLOBAL double hydrodynamicRadius;
+EXTERN_GLOBAL int nDrift;
 
 
 bool loadDataMain(int argc, char* argv[]);
@@ -105,6 +113,7 @@ bool hydroAnalysisIncompressible(int counter);
 bool schemeBinaryMixtureWall();
 bool cudaDevice();
 bool saveFluidFinalConfiguration();
+// bool space_saveFluidVTK::saveFluidVTK(int option);
 bool saveFluidVTK(int option);
 
 //Functions for pseudorandom numbers
@@ -120,7 +129,7 @@ bool init_random_gpu(int SEED);
 bool free_random_gpu();
 
 int modu(int x, int y);
-void simpleCubic();
+void simpleCubic(const int dimension);
 
 
 //schemeRK3Ghost
@@ -233,7 +242,15 @@ bool schemeQuasiNeutrallyBuoyant4pt2D();
 bool freeMemoryQuasiNeutrallyBuoyant4pt2D();
 bool runSchemeQuasiNeutrallyBuoyant4pt2D();
 
-
+//SchemeQuasi2D
+bool createCellsQuasi2DGPU();
+bool freeCellsQuasi2DGPU();
+bool createBoundariesQuasi2DGPU();
+bool freeBoundariesQuasi2DGPU();
+bool schemeQuasi2D();
+bool freeMemoryQuasi2D();
+bool runSchemeQuasi2D();
+ 
 //schemeCompressibleParticles
 bool schemeCompressibleParticles();
 bool freeMemoryCompressibleParticles();
@@ -297,11 +314,12 @@ bool runSchemeStokesLimitFirstOrder();
 
 //stokesLimit
 bool schemeStokesLimit();
-bool saveFunctionsSchemeStokesLimit(int index, long long step);
+bool saveFunctionsSchemeStokesLimit(int index, long long step, int samplefreq);
 bool runSchemeStokesLimit();
 bool createCellsStokesLimitGPU();
 bool freeCellsStokesLimitGPU();
 bool freeMemoryStokesLimit();
+
 
 
 //stokesLimitBigSystem
@@ -310,5 +328,9 @@ bool freeMemoryStokesLimitBigSystem();
 bool createBoundariesRK2BigSystemGPU(); 
 bool freeBoundariesRK2BigSystemGPU(); 
 bool runSchemeStokesLimitBigSystem(); 
+
+
+// quasi2D
+bool calculateConcentration(int index, long long step);
 
 
