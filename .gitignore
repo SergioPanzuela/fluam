@@ -1,5 +1,32 @@
+
 bin/*.o
 bin/fluam
 data/*
 *.bak
 *~
+
+# Compiled source #
+###################
+*.o
+*.mod
+
+# tmp files #
+############
+*~
+
+# Makefiles #
+#############
+
+
+# Input files #
+###############
+
+
+# Exclude some folders #
+########################
+data/
+work/
+bin/
+
+*\#*
+

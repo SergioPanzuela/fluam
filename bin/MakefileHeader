@@ -7,7 +7,9 @@ SRC_FLUAM=../src/
 #
 # Path to HydroGrid
 # Uncomment if you have HydroGrid
+
 SRC_HYDROLIB=../../HydroGrid/src/
+
 
 
 #
@@ -36,6 +38,7 @@ NVCC = nvcc
 # Use a specific c++ compiler: --compiler-bindir /usr/bin/gcc
 # Compile for a given architecture, for example 2.0: -arch=sm_20
 NVCCFLAGS = -O3 -std=c++11 -arch=sm_52 $(CUDALIB) 
+
 
 
 #

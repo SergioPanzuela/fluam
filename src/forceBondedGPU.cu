@@ -58,8 +58,6 @@ __device__ void forceBondedParticleParticleGPU(const int i,
   double kSpring;
   int index;
 
-  int stype;
-
   //Particle-Particle Force
   int nBonds = bFV->bondsParticleParticleGPU[i];
   int offset = bFV->bondsParticleParticleOffsetGPU[i];
@@ -69,32 +67,20 @@ __device__ void forceBondedParticleParticleGPU(const int i,
 
     index = bFV->bondsIndexParticleParticleGPU[offset + j];
 
-    //if(i==0) index=1;
-    //if(i==1) index=0;
-
-
     //Particle bonded coordinates
     x = fetch_double(texrxboundaryGPU,nboundaryGPU+index);
     y = fetch_double(texryboundaryGPU,nboundaryGPU+index);
     z = fetch_double(texrzboundaryGPU,nboundaryGPU+index);
     
-    //Spring type CAUTION TEMPORAL WORK AROUND 
-    stype = (int) bFV->r0ParticleParticleGPU[offset+j];
+    r0 = (int) bFV->r0ParticleParticleGPU[offset+j];
 	
-    // printf(" %d %d %d\n", i, index, stype);   
+
  
     //Spring constant
     kSpring = bFV->kSpringParticleParticleGPU[offset+j];
 
-    if(stype==0){  // harmonic potential  TODO
-      r0 = 3.200  ;  //TODO
-      harmonic_spring(r0,kSpring,rx,ry,rz,x,y,z,fx,fy,fz);
-    }
-    else if(stype==1){  // FENE potential  TODO
-      r0 = 1.200 ;   //TODO
-      fene_spring(r0,kSpring,rx,ry,rz,x,y,z,fx,fy,fz);
-
-    }
+    harmonic_spring(r0,kSpring,rx,ry,rz,x,y,z,fx,fy,fz);
+    //fene_spring(r0,kSpring,rx,ry,rz,x,y,z,fx,fy,fz);
 
   }
 

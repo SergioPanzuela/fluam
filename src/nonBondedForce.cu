@@ -20,57 +20,14 @@
 
 //!*R force function, returns F/r, currently a square function depending on the interaction parameters.
 //!*R You can use this function from any scheme, currently used in stokesLimitFunctions and quasiNeutrallyBuoyantFunctions
-// __device__ double LJ(double r2, double *Aij, double *Bij, int typeindex, int i, int j){
-//   if(r2==0.0) return 0.0;  
-//   else if(r2>(1.0/invcutoff2GPU)) return 0.0;
-//   double A = Aij[typeindex];
-//   double B = Bij[typeindex];
-//   double r6 = 1.0/(r2*r2*r2);
-//   return (A*r6*r6 - B*r6)/r2;
-  
-// }
-
-//!*R force function, returns F/r, currently a square function depending on the interaction parameters.
-__device__ double LJ(double r2, double *Aij, double *Bij, int typeindex, int i, int j){
-  if(r2==0.0) return 0.0;           // distance =0    (loop go throught all the particles
-  double A = Aij[typeindex];
-  double B = Bij[typeindex];
-  double r;
-  double r6;
-  double r12;
-  double w_c;
-  double r_c;
-  double r_c2;
-  const double sigma=0.8;
-  const double factor_w_s=1.2;
-
-  if(typeindex == 0 || typeindex == 1 || typeindex == 2 ){            // H1-H1  or H1-T1 or T1-H1
-     r_c=1.122462048*sigma*0.95;
-     r_c2=r_c*r_c;
-     if(r2>r_c2) return 0.0;      // distance > rcut    
-     else {
-       r6=r2*r2*r2;
-       r12=r6*r6;
-       return -1/r2*(A*0.735091891/r6-B*0.540360088/r12); 
-     }
-  }
-  else if(typeindex ==3 ){       // T1-T1
-     w_c=factor_w_s*sigma;
-     r_c=1.122462048*sigma;
-     r=sqrt(r2);
-     if(r<=r_c) {
-       r6=r2*r2*r2;
-       r12=r6*r6;
-       return -1/r2*(A/r6-B/r12);      // distance > rcut    
-     }
-     else if(r>r_c && r<r_c+w_c) return -1.32/r*cos(M_PI*(r-r_c)/(2*w_c))*sin(M_PI*(r-r_c)/(2*w_c))*M_PI/w_c ; 
-     else return 0.0 ;                  //1.32, este parametro es ε recordar!!!! importante!!!!
-  }
-  else return 0.0;
-
-
-}
-
+ __device__ double LJ(double r2, double *Aij, double *Bij, int typeindex, int i, int j){
+   if(r2==0.0) return 0.0;  
+   else if(r2>(1.0/invcutoff2GPU)) return 0.0;
+   double A = Aij[typeindex];
+   double B = Bij[typeindex];
+   double r6 = 1.0/(r2*r2*r2);
+   return (A*r6*r6 - B*r6)/r2;
+ }
 
 
 __global__ void nonBondedForce(double* rxcellGPU, 
