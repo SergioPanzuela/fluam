@@ -264,9 +264,9 @@ bool runSchemeQuasiNeutrallyBuoyant(){
 										       errorKernel);
     
 
-
-
-
+    
+    
+    
     //
     //
     //
@@ -290,8 +290,19 @@ bool runSchemeQuasiNeutrallyBuoyant(){
 										advXGPU,
 										advYGPU,
 										advZGPU);
-									      
+
     
+    //Add external forces
+    //Raul added, call to shear flow kernel, this sums a sinusoidal force to each fluid cell.
+    if(viscosityMeasureAmplitude != 0.0){
+      
+      addShearFlowQuasiNeutrallyBuoyant<<<numBlocks, threadsPerBlock>>>(vxZ, vyZ, vzZ,
+									viscosityMeasureAmplitude,
+									viscosityMeasureMode,
+									viscosityMeasurePlane,
+									viscosityMeasureDir);
+    }
+
     //Calculate velocity prediction with incompressibility "\tilde{v}^{n+1}"
     //Go to fourier space
     cufftExecZ2Z(FFT,vxZ,vxZ,CUFFT_FORWARD);//W

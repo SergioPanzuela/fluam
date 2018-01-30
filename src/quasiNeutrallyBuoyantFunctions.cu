@@ -20,6 +20,35 @@
 
 
 
+//Raul added, a kernel to add a shear flow to the fluid. A sinusoidal force is added to each fluid cell. This shear flow is intended to be used for viscosity measurements.
+__global__ void addShearFlowQuasiNeutrallyBuoyant(cufftDoubleComplex *vxZ,
+					cufftDoubleComplex *vyZ,
+					cufftDoubleComplex *vzZ,
+					double viscosityMeasureAmplitude,
+					double viscosityMeasureMode,
+					int viscosityMeasurePlane,
+					int viscosityMeasureDir){
+  const int i = blockDim.x * blockIdx.x + threadIdx.x;
+  if(i>=ncellsGPU) return;
+  double posfluid;
+  int ic;
+  switch(viscosityMeasurePlane){
+  case 0: ic = i%mxGPU;                    posfluid = (ic-0.5*mxGPU+0.5)/(double)mxGPU;    break;
+  case 1: ic = (i%(mxGPU*mytGPU)) /mxGPU;  posfluid = (ic-0.5*mytGPU+0.5)/(double)mytGPU;  break;
+  case 2: ic = i/(mxGPU*mytGPU);           posfluid = (ic-0.5*mzGPU+0.5)/(double)mzGPU;    break;
+  }
+  constexpr double pi2 = 6.28318530717958648;
+  double force = viscosityMeasureAmplitude * sin(pi2*viscosityMeasureMode* posfluid)*dtGPU/densfluidGPU;
+  switch(viscosityMeasureDir){
+  case 0: vxZ[i].x -= force; break;
+  case 1: vyZ[i].x -= force; break;
+  case 2: vzZ[i].x -= force; break;
+  }
+  
+}
+
+
+
 //!*R New kernelSpread with Colors and three springs, tested with quasiNeutrally
 //Fill "countparticlesincellX" lists
 //and spread particle force F, The force comes from LJ function in nonBondedForce.cu
